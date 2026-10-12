@@ -3726,112 +3726,208 @@ function updatePlumeInfoPanel(mo, wKiri, wKanan, ql, tidePhase, uTide){
     panel.classList.remove('hidden');
 }
 
-function renderBilateralPlume(valDebit, tidePhase){
+function renderBilateralPlume(valDebit, tidePhase) {
     const mo = DSS_MONSOON[MONSOON];
-    const tData = calcTideAtHour(TIDE_HOUR);
-    const tideFactor = tData.normDeriv;
+    const tData = (typeof calcTideAtHourAndDay === 'function') ? calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY) : calcTideAtHour(TIDE_HOUR);
+    const tideFactor = tData.normDeriv; // Positif saat Flood (pasang), Negatif saat Ebb (surut)
     const uTide = tData.uTide;
-    
-    // Saat surut (tideFactor < 0): plume mengembang ke laut lepas; saat pasang mengempis ke arah pantai
-    const rTide = 1 + 0.22 * Math.max(0, -tideFactor) - 0.08 * Math.max(0, tideFactor);
-    const shift = tideFactor * mo.driftDir * 8;
-    let sedRadius = ((valDebit * 36) + 620) * rTide;
-    if (MONSOON === 'barat') sedRadius *= 1.18;
+    const isBarat = MONSOON === 'barat';
+
+    // Saat surut (EBB): pancaran estuari (ebb jet) mengembang jauh ke laut lepas (offshore)
+    // Saat pasang (FLOOD): arus pasut menahan debit masuk kembali ke darat (onshore compression)
+    const rTide = 1 + 0.32 * Math.max(0, -tideFactor) - 0.16 * Math.max(0, tideFactor);
+    const shift = tideFactor * mo.driftDir * 10;
+    let sedRadius = ((valDebit * 38) + 650) * rTide;
+    if (isBarat) sedRadius *= 1.20;
     const spread = mo.spread;
     let sedColor = valDebit > 70 ? '#ef4444' : (valDebit > 40 ? '#f59e0b' : '#10b981');
     let originLat = -6.824; let originLng = 110.518;
-    const cosLat = Math.cos(originLat * Math.PI/180);
+    const cosLat = Math.cos(originLat * Math.PI / 180);
     const mPerDeg = 111320;
     const wKiri = mo.wKiri, wKanan = mo.wKanan;
-    const Rkiri  = sedRadius * (0.45 + 0.85*wKiri)  * spread;
-    const Rkanan = sedRadius * (0.45 + 0.85*wKanan) * spread;
+    const Rkiri  = sedRadius * (0.45 + 0.85 * wKiri)  * spread;
+    const Rkanan = sedRadius * (0.45 + 0.85 * wKanan) * spread;
 
     const lobePoints = (centerDeg, halfWidth, R) => {
         const pts = [[originLat, originLng]];
         for (let a = -halfWidth; a <= halfWidth; a += 2.5) {
-            const ang = (centerDeg + a) * (Math.PI/180);
+            const ang = (centerDeg + a) * (Math.PI / 180);
             const rel = Math.abs(a) / halfWidth;
             const rG = R * (0.30 + 0.70 * Math.cos(rel * Math.PI * 0.5));
-            pts.push([ originLat + (rG/mPerDeg) * Math.cos(ang),
-                       originLng + (rG/(mPerDeg*cosLat)) * Math.sin(ang) ]);
+            pts.push([ originLat + (rG / mPerDeg) * Math.cos(ang),
+                       originLng + (rG / (mPerDeg * cosLat)) * Math.sin(ang) ]);
         }
         return pts;
     };
 
     const drawLobe = (centerDeg, halfWidth, R, weight, sideLabel) => {
         const rings = [
-            { f: 1.00, op: 0.07, col: '#38bdf8', dash: '10, 12' },
-            { f: 0.62, op: 0.15, col: '#f59e0b', dash: '6, 8'  },
-            { f: 0.32, op: 0.30, col: sedColor, dash: ''      }
+            { f: 1.00, op: 0.08, col: '#38bdf8', dash: '10, 12' },
+            { f: 0.62, op: 0.16, col: '#f59e0b', dash: '6, 8'  },
+            { f: 0.32, op: 0.32, col: sedColor, dash: ''      }
         ];
         rings.forEach(rg => {
             L.polygon(lobePoints(centerDeg, halfWidth * rg.f + 4, R * rg.f), {
                 pane: 'dsasPane', color: rg.col, weight: rg.f < 0.5 ? 2.5 : 1.5,
-                fillColor: rg.col, fillOpacity: rg.op, opacity: 0.8,
+                fillColor: rg.col, fillOpacity: rg.op, opacity: 0.85,
                 dashArray: rg.dash, lineJoin: 'round', className: 'plume-blinking'
             }).addTo(dynamicMapLayers);
         });
-        const angL = centerDeg * Math.PI/180;
-        const lblLat = originLat + ((R*0.72)/mPerDeg) * Math.cos(angL);
-        const lblLng = originLng + ((R*0.72)/(mPerDeg*cosLat)) * Math.sin(angL);
-        const areaKm2 = Math.PI * Math.pow(R*spread/1000, 2) * 0.5 * (weight/0.5);
-        const ssc = 28 + valDebit * 1.15 * weight * 2;
+        const angL = centerDeg * Math.PI / 180;
+        const lblLat = originLat + ((R * 0.72) / mPerDeg) * Math.cos(angL);
+        const lblLng = originLng + ((R * 0.72) / (mPerDeg * cosLat)) * Math.sin(angL);
+        const areaKm2 = Math.PI * Math.pow(R * spread / 1000, 2) * 0.5 * (weight / 0.5);
+        const ssc = 28 + valDebit * 1.25 * weight * 2;
         L.circleMarker([lblLat, lblLng], { pane: 'dsasPane', radius: 5, color: sedColor, fillColor: sedColor, fillOpacity: 0.9 })
-            .bindTooltip(`<div class="font-mono text-[10px] leading-relaxed"><b class="text-white">${sideLabel}</b><br>Asal: muara Kali Jajar–Tuntang<br>Luas dispersi ≈ <b class="text-amber-300">${areaKm2.toFixed(1)} km²</b><br>SSC inti ≈ <b class="text-orange-300">${Math.round(ssc)} mg/L</b><br>Bobot lobus: <b>${Math.round(weight*100)}%</b> (${mo.label})</div>`,
+            .bindTooltip(`<div class="font-mono text-[10px] leading-relaxed"><b class="text-white">${sideLabel}</b><br>TSS Plume Dispersi<br>Luas: <b class="text-amber-300">${areaKm2.toFixed(1)} km²</b><br>Konsentrasi Inti: <b class="text-orange-300">${Math.round(ssc)} mg/L</b><br>Arus Pasut: <b>${tData.state} (${tData.uTide.toFixed(2)} m/s)</b><br>Bobot Lobus: <b>${Math.round(weight*100)}% (${mo.label})</b></div>`,
             { direction: 'top', className: 'custom-tooltip' }).addTo(dynamicMapLayers);
     };
 
+    // Lobus Kiri (Barat, 305°) & Lobus Kanan (Timur, 55°)
     drawLobe(305 + shift, 52 * spread, Rkiri, wKiri, "LOBUS KIRI (BARAT)");
     drawLobe(55 + shift, 52 * spread, Rkanan, wKanan, "LOBUS KANAN (TIMUR)");
 
-    const ql = DSSPRO.cerc(mo.Hs, mo.Tp, mo.alphaCERC, 0.39);
-    const domR = mo.domLobe === 'kanan' ? Rkanan : Rkiri;
-    const dLat = originLat + ((domR*1.02)/mPerDeg) * Math.cos((mo.domLobe==='kanan'?60:-60)*Math.PI/180) * 0.5;
-    const dLng = originLng + ((domR*1.02)/(mPerDeg*cosLat)) * Math.sin((mo.domLobe==='kanan'?60:-60)*Math.PI/180) * 0.5;
-    const driftIcon = L.divIcon({ html: `<div style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:50%;background:${mo.domLobe==='kanan'?'rgba(37,99,235,0.92)':'rgba(8,145,178,0.92)'};border:2px solid #bae6fd;box-shadow:0 0 10px rgba(56,189,248,0.7);color:#fff;font-size:13px;">
-        <i class="fa-solid fa-${mo.domLobe==='kanan'?'arrow-right':'arrow-left'}"></i></div>`, className: 'drift-arrow-pulse', iconSize: [30, 30], iconAnchor: [15, 15] });
-    L.marker([dLat, dLng], { icon: driftIcon, pane: 'stationsPane' })
-        .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">LONGSHORE DRIFT</b><br>${mo.drift}<br>Ql(CERC) ≈ ${(ql.Ql_yr/1000).toFixed(0)}rb m³/th</div>`, { direction: 'top', className: 'custom-tooltip' })
+    // =====================================================================
+    // 1. INDIKATOR VEKTOR MAKRO GELOMBANG & ARUS SUSUR PANTAI (LONGSHORE DRIFT)
+    // =====================================================================
+    const ql = (window.DSSPRO && DSSPRO.cerc) ? DSSPRO.cerc(mo.Hs, mo.Tp, mo.alphaCERC, 0.39) : { Ql_yr: 0 };
+
+    // A. Indikator Vektor Gelombang Datang (Incident Waves)
+    // Musim Barat: datang DARI Barat Laut (315°) merambat ke Tenggara (135°)
+    // Musim Timur: datang DARI Timur Laut (45°) merambat ke Barat Daya (225°)
+    const waveIncidenceAngle = isBarat ? 315 : 45;
+    const wavePropAngle = isBarat ? 135 : 225;
+    const waveDistDeg = 0.038;
+    const waveLat = originLat + waveDistDeg * Math.cos(waveIncidenceAngle * Math.PI / 180);
+    const waveLng = originLng + (waveDistDeg / cosLat) * Math.sin(waveIncidenceAngle * Math.PI / 180);
+    const waveIconRot = wavePropAngle - 90;
+
+    const waveIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.94);border:2px solid ${isBarat?'#60a5fa':'#22d3ee'};border-radius:20px;padding:4px 10px;box-shadow:0 0 14px rgba(0,0,0,0.85);white-space:nowrap;pointer-events:auto;">
+            <div style="width:22px;height:22px;border-radius:50%;background:${isBarat?'#2563eb':'#0891b2'};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${waveIconRot}deg);">
+                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-white font-black">GELOMBANG ${isBarat?'BARAT LAUT (315°)':'TIMUR LAUT (45°)'}</span><br>
+                <span class="text-slate-300">Hs=${mo.Hs.toFixed(2)}m · Tp=${mo.Tp.toFixed(1)}s</span>
+            </div>
+        </div>`,
+        className: '',
+        iconSize: [210, 32],
+        iconAnchor: [105, 16]
+    });
+    L.marker([waveLat, waveLng], { icon: waveIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b>Gelombang Datang Signifikan</b><br>${mo.label} (${mo.bulan})<br>Arah datang: <b>${mo.arah}</b></div>`, { direction: 'top', className: 'custom-tooltip' })
         .addTo(dynamicMapLayers);
 
-    const riverLine = [ [-6.845, 110.535], [-6.838, 110.528], [-6.830, 110.522], [originLat, originLng] ];
-    L.polyline(riverLine, { pane: 'dsasPane', color: sedColor, weight: 5, opacity: 0.9, dashArray: '12, 12', className: 'flowing-river-line' }).addTo(dynamicMapLayers);
+    // B. Indikator Vektor Arus Susur Pantai (Longshore Drift)
+    // Di Musim Barat: Arus bergerak TEGAS KE TIMUR (+Lng, ke arah Morodemak / Jepara)
+    // Di Musim Timur: Arus bergerak TEGAS KE BARAT (-Lng, ke arah Sayung / Semarang)
+    const driftTargetAngle = isBarat ? 75 : 255;
+    const domLobeRadius = isBarat ? Rkanan : Rkiri;
+    const driftDist = (domLobeRadius * 0.85) / mPerDeg;
+    const driftLat = originLat + driftDist * Math.cos(driftTargetAngle * Math.PI / 180) * 0.5;
+    const driftLng = originLng + (driftDist / cosLat) * Math.sin(driftTargetAngle * Math.PI / 180) * 0.8;
+    const driftIconRot = driftTargetAngle - 90;
 
-    const particleTotal = valDebit > 60 ? 90 : 50;
-    const emitLobeParticles = (centerDeg, halfWidth, R, weight) => {
-        const cnt = Math.max(6, Math.round(particleTotal * weight));
+    const driftIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.95);border:2px solid ${isBarat?'#3b82f6':'#06b6d4'};border-radius:24px;padding:5px 12px;box-shadow:0 0 16px ${isBarat?'rgba(59,130,246,0.6)':'rgba(6,182,212,0.6)'};white-space:nowrap;pointer-events:auto;" class="drift-arrow-pulse">
+            <div style="width:24px;height:24px;border-radius:50%;background:${isBarat?'#1d4ed8':'#0e7490'};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${driftIconRot}deg);border:1.5px solid #fff;">
+                <i class="fa-solid fa-arrow-right text-[12px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-amber-300 font-black">ARUS SUSUR PANTAI (DRIFT)</span><br>
+                <span class="${isBarat?'text-blue-300':'text-cyan-300'} font-bold">${isBarat ? 'KE TIMUR (Morodemak →)' : '← KE BARAT (Sayung/Semarang)'}</span>
+            </div>
+        </div>`,
+        className: '',
+        iconSize: [230, 36],
+        iconAnchor: [115, 18]
+    });
+    L.marker([driftLat, driftLng], { icon: driftIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">ARUS SUSUR PANTAI (LITTORAL DRIFT)</b><br>Arah Arus: <b class="${isBarat?'text-blue-300':'text-cyan-300'}">${mo.drift}</b><br>Angkutan Sedimen Ql ≈ <b>${(ql.Ql_yr/1000).toFixed(0)} rb m³/th</b> (CERC)</div>`, { direction: 'top', className: 'custom-tooltip' })
+        .addTo(dynamicMapLayers);
+
+    // =====================================================================
+    // 2. VEKTOR PARTIKEL ARUS & SEDIMEN YANG BERGERAK MENGIKUTI POLA PASUT
+    // =====================================================================
+    const particleTotal = valDebit > 60 ? 96 : 64;
+
+    const emitLobeParticles = (centerDeg, halfWidth, R, weight, lobeType) => {
+        const cnt = Math.max(8, Math.round(particleTotal * weight));
         for (let i = 0; i < cnt; i++) {
-            let angle = centerDeg + (Math.random()*2-1) * halfWidth * spread;
+            let angle = centerDeg + (Math.random() * 2 - 1) * halfWidth * spread;
             let rad = angle * (Math.PI / 180);
-            let distanceDeg = Math.random() * (R/mPerDeg) * 1.15;
+            let distanceDeg = Math.random() * (R / mPerDeg) * 1.12;
             let startLat = originLat + distanceDeg * Math.cos(rad) * 0.55;
-            let startLng = originLng + (distanceDeg/cosLat) * Math.sin(rad) * 0.55;
-            let travelDist = 28 + Math.random() * 42;
-            let tx = travelDist * Math.cos(rad);
-            let ty = travelDist * -Math.sin(rad);
-            let rot = -angle;
-            let dur = 1.5 + Math.random() * 2;
-            let del = Math.random() * 2.5;
+            let startLng = originLng + (distanceDeg / cosLat) * Math.sin(rad) * 0.55;
+
+            // PENETAPAN HEADING FISIS PARTIKEL BERDASARKAN MUSIM, LOBUS, DAN FASE PASUT:
+            let flowHeading;
+            if (tData.state === 'FLOOD') {
+                // Pasang naik: partikel ditarik menuju garis pantai (heading daratan)
+                // Musim Barat: ke pantai Tenggara (~150° s/d 175°)
+                // Musim Timur: ke pantai Barat Daya (~185° s/d 210°)
+                flowHeading = (isBarat ? 162 : 196) + (Math.random() * 20 - 10);
+            } else if (tData.state === 'EBB') {
+                // Surut: partikel disemburkan keluar muara dan terdefleksi arus susur pantai:
+                // MUSIM BARAT: Arus susur pantai dari Barat mendorong partikel KE TIMUR!
+                //   - Lobus Kanan (Timur, dominan 66%): heading 55° s/d 75° (menuju kanan peta / Timur)
+                //   - Lobus Kiri (Barat, minor 34%): heading 30° s/d 50° (terbelokkan ke arah utara/timur)
+                // MUSIM TIMUR: Arus susur pantai dari Timur mendorong partikel KE BARAT!
+                //   - Lobus Kiri (Barat, dominan 66%): heading 285° s/d 305° (menuju kiri peta / Barat)
+                //   - Lobus Kanan (Timur, minor 34%): heading 325° s/d 345° (tersapu ke arah barat laut)
+                if (isBarat) {
+                    flowHeading = (lobeType === 'kanan' ? 65 : 38) + (Math.random() * 18 - 9);
+                } else {
+                    flowHeading = (lobeType === 'kiri' ? 295 : 335) + (Math.random() * 18 - 9);
+                }
+            } else {
+                // Saat SLACK:
+                flowHeading = (centerDeg + (Math.random() * 16 - 8) + 360) % 360;
+            }
+
+            let flowRad = flowHeading * (Math.PI / 180);
+            let travelDist = 32 + Math.random() * 45;
+
+            // Translasi vektor pada layar Leaflet (X: East, Y: South):
+            let tx = travelDist * Math.sin(flowRad);
+            let ty = -travelDist * Math.cos(flowRad);
+
+            // Sudut rotasi font-awesome arrow: 0° menunjuk ke kanan (+X / 90° kompas)
+            // Rumus sinkron: arrowRot = flowHeading - 90
+            let arrowRot = flowHeading - 90;
+
+            // Durasi partikel berbanding terbalik dengan kecepatan resultan
+            let dur = Math.max(0.8, Math.min(4.5, 1.8 / Math.max(0.12, tData.resSpeed) + (Math.random() * 0.6 - 0.3)));
+            let del = Math.random() * 2.0;
+
+            let arrowColor = tData.state === 'FLOOD' ? '#10b981' : (tData.state === 'EBB' ? (isBarat ? '#60a5fa' : '#38bdf8') : '#f59e0b');
             let iconHtml = `
-                <div class="vector-particle-wrapper" style="--tx: ${tx}px; --ty: ${ty}px; --dur: ${dur}s; --del: ${del}s;">
-                    <i class="fa-solid fa-arrow-right vector-particle-icon" style="--rot: ${rot}deg; --p-color: ${sedColor};"></i>
+                <div class="vector-particle-wrapper" style="--tx: ${tx.toFixed(1)}px; --ty: ${ty.toFixed(1)}px; --dur: ${dur.toFixed(2)}s; --del: ${del.toFixed(2)}s;">
+                    <i class="fa-solid fa-arrow-right vector-particle-icon" style="transform: rotate(${arrowRot.toFixed(1)}deg); --rot: ${arrowRot.toFixed(1)}deg; --p-color: ${arrowColor}; font-size: 13px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.9));"></i>
                 </div>`;
             let particleIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24] });
             L.marker([startLat, startLng], { icon: particleIcon, interactive: false, pane: 'stationsPane' }).addTo(dynamicMapLayers);
         }
     };
-    emitLobeParticles(305 + shift, 52, Rkiri, wKiri);
-    emitLobeParticles(55 + shift, 52, Rkanan, wKanan);
 
-    L.polygon(lobePoints(0, 14, sedRadius*0.22), {
-        pane: 'dsasPane', color: sedColor, weight: 2, fillColor: sedColor,
+    emitLobeParticles(305 + shift, 52, Rkiri, wKiri, 'kiri');
+    emitLobeParticles(55 + shift, 52, Rkanan, wKanan, 'kanan');
+
+    // Indikator Titik Keluaran Muara Kali Jajar
+    L.polygon(lobePoints(0, 14, sedRadius * 0.22), {
+        pane: 'dsasPane', color: sedColor, weight: 2.2, fillColor: sedColor,
         fillOpacity: 0.35, className: 'plume-blinking'
     }).addTo(dynamicMapLayers)
-      .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">Titik keluaran muara</b><br>Kali Jajar Baru & Tuntang</div>`, { direction: 'top', className: 'custom-tooltip' });
+      .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">Titik Keluaran Muara Kali Jajar</b><br>Status Pasut: <b class="text-cyan-300">${tData.state} (${tData.uTide.toFixed(2)} m/s)</b><br>Regim: <b class="${isBarat?'text-blue-300':'text-cyan-300'}">${mo.label} (${mo.drift})</b></div>`, { direction: 'top', className: 'custom-tooltip' });
+
+    // Polyline aliran sungai hulu ke muara
+    const riverLine = [ [-6.845, 110.535], [-6.838, 110.528], [-6.830, 110.522], [originLat, originLng] ];
+    L.polyline(riverLine, { pane: 'dsasPane', color: sedColor, weight: 5, opacity: 0.9, dashArray: '12, 12', className: 'flowing-river-line' }).addTo(dynamicMapLayers);
 
     updatePlumeInfoPanel(mo, wKiri, wKanan, ql, tidePhase, uTide);
 }
-
 
         function triggerAnalisisAlgoritma() {
             jalankanSimulasiVensim();
@@ -4351,13 +4447,23 @@ function renderBilateralPlume(valDebit, tidePhase){
                 makeElementDraggable(document.getElementById('floatingTideHUD'), document.getElementById('tideHUDDragHandle'));
                 updateTideFromTime(TIDE_HOUR, false);
                 setTimeout(renderBedloadSimulationLayer, 400);
+                setTimeout(triggerAnalisisAlgoritma, 650);
             }, 250);
         };
 
 function setMonsoon(m){
-  MONSOON = m; updateMonsoonUI();
+  MONSOON = m; 
+  updateMonsoonUI();
   jalankanSimulasiVensim();
-  if (window.dynamicMapLayers && dynamicMapLayers.getLayers().length > 0) triggerAnalisisAlgoritma();
+  triggerAnalisisAlgoritma();
+  if (typeof toastNotifikasi === 'function') {
+      const isBarat = m === 'barat';
+      toastNotifikasi(
+          isBarat ? 'Regim Musim Barat Aktif: Gelombang NW (315°), Arus Susur Pantai & Plume Hanyut KE TIMUR (Morodemak)'
+                  : 'Regim Musim Timur Aktif: Gelombang NE (45°), Arus Susur Pantai & Plume Hanyut KE BARAT (Sayung/Semarang)',
+          isBarat ? 'fa-cloud-showers-heavy' : 'fa-sun'
+      );
+  }
 }
 function updateMonsoonUI(){
   const mo = DSS_MONSOON[MONSOON];
@@ -5707,18 +5813,19 @@ initTideCanvas = function() {
 // =========================================================================
 // [V4.8.1 EXTENSION] SIMULASI PERGERAKAN PLUME TSS (PANAH-PANAH DINAMIS PASUT)
 // =========================================================================
-renderBilateralPlume = function(valDebit, tidePhase) {
+renderBilateralPlume = function renderBilateralPlume(valDebit, tidePhase) {
     const mo = DSS_MONSOON[MONSOON];
-    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const tData = (typeof calcTideAtHourAndDay === 'function') ? calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY) : calcTideAtHour(TIDE_HOUR);
     const tideFactor = tData.normDeriv; // Positif saat Flood (pasang), Negatif saat Ebb (surut)
     const uTide = tData.uTide;
+    const isBarat = MONSOON === 'barat';
 
     // Saat surut (EBB): pancaran estuari (ebb jet) mengembang jauh ke laut lepas (offshore)
-    // Saat pasang (FLOOD): arus pasut mendorong debit masuk kembali ke darat (onshore compression)
+    // Saat pasang (FLOOD): arus pasut menahan debit masuk kembali ke darat (onshore compression)
     const rTide = 1 + 0.32 * Math.max(0, -tideFactor) - 0.16 * Math.max(0, tideFactor);
     const shift = tideFactor * mo.driftDir * 10;
     let sedRadius = ((valDebit * 38) + 650) * rTide;
-    if (MONSOON === 'barat') sedRadius *= 1.20;
+    if (isBarat) sedRadius *= 1.20;
     const spread = mo.spread;
     let sedColor = valDebit > 70 ? '#ef4444' : (valDebit > 40 ? '#f59e0b' : '#10b981');
     let originLat = -6.824; let originLng = 110.518;
@@ -5759,20 +5866,81 @@ renderBilateralPlume = function(valDebit, tidePhase) {
         const areaKm2 = Math.PI * Math.pow(R * spread / 1000, 2) * 0.5 * (weight / 0.5);
         const ssc = 28 + valDebit * 1.25 * weight * 2;
         L.circleMarker([lblLat, lblLng], { pane: 'dsasPane', radius: 5, color: sedColor, fillColor: sedColor, fillOpacity: 0.9 })
-            .bindTooltip(`<div class="font-mono text-[10px] leading-relaxed"><b class="text-white">${sideLabel}</b><br>TSS Plume Dispersi<br>Luas: <b class="text-amber-300">${areaKm2.toFixed(1)} km²</b><br>Konsentrasi Inti: <b class="text-orange-300">${Math.round(ssc)} mg/L</b><br>Arus Pasut: <b>${tData.state} (${tData.uTide.toFixed(2)} m/s)</b></div>`,
+            .bindTooltip(`<div class="font-mono text-[10px] leading-relaxed"><b class="text-white">${sideLabel}</b><br>TSS Plume Dispersi<br>Luas: <b class="text-amber-300">${areaKm2.toFixed(1)} km²</b><br>Konsentrasi Inti: <b class="text-orange-300">${Math.round(ssc)} mg/L</b><br>Arus Pasut: <b>${tData.state} (${tData.uTide.toFixed(2)} m/s)</b><br>Bobot Lobus: <b>${Math.round(weight*100)}% (${mo.label})</b></div>`,
             { direction: 'top', className: 'custom-tooltip' }).addTo(dynamicMapLayers);
     };
 
+    // Lobus Kiri (Barat, 305°) & Lobus Kanan (Timur, 55°)
     drawLobe(305 + shift, 52 * spread, Rkiri, wKiri, "LOBUS KIRI (BARAT)");
     drawLobe(55 + shift, 52 * spread, Rkanan, wKanan, "LOBUS KANAN (TIMUR)");
 
     // =====================================================================
-    // VEKTOR PARTIKEL ARUS & SEDIMEN YANG BERGERAK MENGIKUTI POLA PASUT
-    // Saat FLOOD: panah mengarah ke pantai/estuari (retention ke mangrove)
-    // Saat EBB: panah menyembur ke laut lepas dan membelok mengikuti drift
+    // 1. INDIKATOR VEKTOR MAKRO GELOMBANG & ARUS SUSUR PANTAI (LONGSHORE DRIFT)
     // =====================================================================
-    const particleTotal = valDebit > 60 ? 95 : 60;
-    const emitLobeParticles = (centerDeg, halfWidth, R, weight) => {
+    const ql = (window.DSSPRO && DSSPRO.cerc) ? DSSPRO.cerc(mo.Hs, mo.Tp, mo.alphaCERC, 0.39) : { Ql_yr: 0 };
+
+    // A. Indikator Vektor Gelombang Datang (Incident Waves)
+    // Musim Barat: datang DARI Barat Laut (315°) merambat ke Tenggara (135°)
+    // Musim Timur: datang DARI Timur Laut (45°) merambat ke Barat Daya (225°)
+    const waveIncidenceAngle = isBarat ? 315 : 45;
+    const wavePropAngle = isBarat ? 135 : 225;
+    const waveDistDeg = 0.038;
+    const waveLat = originLat + waveDistDeg * Math.cos(waveIncidenceAngle * Math.PI / 180);
+    const waveLng = originLng + (waveDistDeg / cosLat) * Math.sin(waveIncidenceAngle * Math.PI / 180);
+    const waveIconRot = wavePropAngle - 90;
+
+    const waveIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.94);border:2px solid ${isBarat?'#60a5fa':'#22d3ee'};border-radius:20px;padding:4px 10px;box-shadow:0 0 14px rgba(0,0,0,0.85);white-space:nowrap;pointer-events:auto;">
+            <div style="width:22px;height:22px;border-radius:50%;background:${isBarat?'#2563eb':'#0891b2'};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${waveIconRot}deg);">
+                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-white font-black">GELOMBANG ${isBarat?'BARAT LAUT (315°)':'TIMUR LAUT (45°)'}</span><br>
+                <span class="text-slate-300">Hs=${mo.Hs.toFixed(2)}m · Tp=${mo.Tp.toFixed(1)}s</span>
+            </div>
+        </div>`,
+        className: '',
+        iconSize: [210, 32],
+        iconAnchor: [105, 16]
+    });
+    L.marker([waveLat, waveLng], { icon: waveIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b>Gelombang Datang Signifikan</b><br>${mo.label} (${mo.bulan})<br>Arah datang: <b>${mo.arah}</b></div>`, { direction: 'top', className: 'custom-tooltip' })
+        .addTo(dynamicMapLayers);
+
+    // B. Indikator Vektor Arus Susur Pantai (Longshore Drift)
+    // Di Musim Barat: Arus bergerak TEGAS KE TIMUR (+Lng, ke arah Morodemak / Jepara)
+    // Di Musim Timur: Arus bergerak TEGAS KE BARAT (-Lng, ke arah Sayung / Semarang)
+    const driftTargetAngle = isBarat ? 75 : 255;
+    const domLobeRadius = isBarat ? Rkanan : Rkiri;
+    const driftDist = (domLobeRadius * 0.85) / mPerDeg;
+    const driftLat = originLat + driftDist * Math.cos(driftTargetAngle * Math.PI / 180) * 0.5;
+    const driftLng = originLng + (driftDist / cosLat) * Math.sin(driftTargetAngle * Math.PI / 180) * 0.8;
+    const driftIconRot = driftTargetAngle - 90;
+
+    const driftIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.95);border:2px solid ${isBarat?'#3b82f6':'#06b6d4'};border-radius:24px;padding:5px 12px;box-shadow:0 0 16px ${isBarat?'rgba(59,130,246,0.6)':'rgba(6,182,212,0.6)'};white-space:nowrap;pointer-events:auto;" class="drift-arrow-pulse">
+            <div style="width:24px;height:24px;border-radius:50%;background:${isBarat?'#1d4ed8':'#0e7490'};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${driftIconRot}deg);border:1.5px solid #fff;">
+                <i class="fa-solid fa-arrow-right text-[12px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-amber-300 font-black">ARUS SUSUR PANTAI (DRIFT)</span><br>
+                <span class="${isBarat?'text-blue-300':'text-cyan-300'} font-bold">${isBarat ? 'KE TIMUR (Morodemak →)' : '← KE BARAT (Sayung/Semarang)'}</span>
+            </div>
+        </div>`,
+        className: '',
+        iconSize: [230, 36],
+        iconAnchor: [115, 18]
+    });
+    L.marker([driftLat, driftLng], { icon: driftIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">ARUS SUSUR PANTAI (LITTORAL DRIFT)</b><br>Arah Arus: <b class="${isBarat?'text-blue-300':'text-cyan-300'}">${mo.drift}</b><br>Angkutan Sedimen Ql ≈ <b>${(ql.Ql_yr/1000).toFixed(0)} rb m³/th</b> (CERC)</div>`, { direction: 'top', className: 'custom-tooltip' })
+        .addTo(dynamicMapLayers);
+
+    // =====================================================================
+    // 2. VEKTOR PARTIKEL ARUS & SEDIMEN YANG BERGERAK MENGIKUTI POLA PASUT
+    // =====================================================================
+    const particleTotal = valDebit > 60 ? 96 : 64;
+
+    const emitLobeParticles = (centerDeg, halfWidth, R, weight, lobeType) => {
         const cnt = Math.max(8, Math.round(particleTotal * weight));
         for (let i = 0; i < cnt; i++) {
             let angle = centerDeg + (Math.random() * 2 - 1) * halfWidth * spread;
@@ -5781,53 +5949,70 @@ renderBilateralPlume = function(valDebit, tidePhase) {
             let startLat = originLat + distanceDeg * Math.cos(rad) * 0.55;
             let startLng = originLng + (distanceDeg / cosLat) * Math.sin(rad) * 0.55;
 
-            // Vektor arah gerak partikel mengikuti resultan hidro-pasut sesaat
-            let flowHeading = tData.heading;
+            // PENETAPAN HEADING FISIS PARTIKEL BERDASARKAN MUSIM, LOBUS, DAN FASE PASUT:
+            let flowHeading;
             if (tData.state === 'FLOOD') {
-                // Pasang naik: partikel ditarik menuju garis pantai (heading 150° - 190°)
-                flowHeading = 170 + (Math.random() * 20 - 10);
+                // Pasang naik: partikel ditarik menuju garis pantai (heading daratan)
+                // Musim Barat: ke pantai Tenggara (~150° s/d 175°)
+                // Musim Timur: ke pantai Barat Daya (~185° s/d 210°)
+                flowHeading = (isBarat ? 162 : 196) + (Math.random() * 20 - 10);
             } else if (tData.state === 'EBB') {
-                // Surut: partikel disemburkan keluar muara (heading 330° - 030°)
-                flowHeading = (MONSOON === 'barat' ? 55 : 305) + (Math.random() * 24 - 12);
+                // Surut: partikel disemburkan keluar muara dan terdefleksi arus susur pantai:
+                // MUSIM BARAT: Arus susur pantai dari Barat mendorong partikel KE TIMUR!
+                //   - Lobus Kanan (Timur, dominan 66%): heading 55° s/d 75° (menuju kanan peta / Timur)
+                //   - Lobus Kiri (Barat, minor 34%): heading 30° s/d 50° (terbelokkan ke arah utara/timur)
+                // MUSIM TIMUR: Arus susur pantai dari Timur mendorong partikel KE BARAT!
+                //   - Lobus Kiri (Barat, dominan 66%): heading 285° s/d 305° (menuju kiri peta / Barat)
+                //   - Lobus Kanan (Timur, minor 34%): heading 325° s/d 345° (tersapu ke arah barat laut)
+                if (isBarat) {
+                    flowHeading = (lobeType === 'kanan' ? 65 : 38) + (Math.random() * 18 - 9);
+                } else {
+                    flowHeading = (lobeType === 'kiri' ? 295 : 335) + (Math.random() * 18 - 9);
+                }
+            } else {
+                // Saat SLACK:
+                flowHeading = (centerDeg + (Math.random() * 16 - 8) + 360) % 360;
             }
 
             let flowRad = flowHeading * (Math.PI / 180);
             let travelDist = 32 + Math.random() * 45;
-            // Translasi vektor pada layar Leaflet (X: East, Y: South)
+
+            // Translasi vektor pada layar Leaflet (X: East, Y: South):
             let tx = travelDist * Math.sin(flowRad);
-            let ty = travelDist * -Math.cos(flowRad);
-            // Sudut rotasi font-awesome arrow: 0° menunjuk ke kanan (+X)
-            let arrowRot = 90 - flowHeading;
+            let ty = -travelDist * Math.cos(flowRad);
+
+            // Sudut rotasi font-awesome arrow: 0° menunjuk ke kanan (+X / 90° kompas)
+            // Rumus sinkron: arrowRot = flowHeading - 90
+            let arrowRot = flowHeading - 90;
 
             // Durasi partikel berbanding terbalik dengan kecepatan resultan
             let dur = Math.max(0.8, Math.min(4.5, 1.8 / Math.max(0.12, tData.resSpeed) + (Math.random() * 0.6 - 0.3)));
             let del = Math.random() * 2.0;
 
-            let arrowColor = tData.state === 'FLOOD' ? '#10b981' : (tData.state === 'EBB' ? '#f59e0b' : '#38bdf8');
+            let arrowColor = tData.state === 'FLOOD' ? '#10b981' : (tData.state === 'EBB' ? (isBarat ? '#60a5fa' : '#38bdf8') : '#f59e0b');
             let iconHtml = `
                 <div class="vector-particle-wrapper" style="--tx: ${tx.toFixed(1)}px; --ty: ${ty.toFixed(1)}px; --dur: ${dur.toFixed(2)}s; --del: ${del.toFixed(2)}s;">
-                    <i class="fa-solid fa-arrow-right vector-particle-icon" style="--rot: ${arrowRot.toFixed(1)}deg; --p-color: ${arrowColor}; font-size: 13px;"></i>
+                    <i class="fa-solid fa-arrow-right vector-particle-icon" style="transform: rotate(${arrowRot.toFixed(1)}deg); --rot: ${arrowRot.toFixed(1)}deg; --p-color: ${arrowColor}; font-size: 13px; filter: drop-shadow(0 0 4px rgba(0,0,0,0.9));"></i>
                 </div>`;
             let particleIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [24, 24] });
             L.marker([startLat, startLng], { icon: particleIcon, interactive: false, pane: 'stationsPane' }).addTo(dynamicMapLayers);
         }
     };
 
-    emitLobeParticles(305 + shift, 52, Rkiri, wKiri);
-    emitLobeParticles(55 + shift, 52, Rkanan, wKanan);
+    emitLobeParticles(305 + shift, 52, Rkiri, wKiri, 'kiri');
+    emitLobeParticles(55 + shift, 52, Rkanan, wKanan, 'kanan');
 
     // Indikator Titik Keluaran Muara Kali Jajar
     L.polygon(lobePoints(0, 14, sedRadius * 0.22), {
         pane: 'dsasPane', color: sedColor, weight: 2.2, fillColor: sedColor,
         fillOpacity: 0.35, className: 'plume-blinking'
     }).addTo(dynamicMapLayers)
-      .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">Titik Keluaran Muara Kali Jajar</b><br>Status Pasut: <b class="text-cyan-300">${tData.state} (${tData.uTide.toFixed(2)} m/s)</b></div>`, { direction: 'top', className: 'custom-tooltip' });
+      .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">Titik Keluaran Muara Kali Jajar</b><br>Status Pasut: <b class="text-cyan-300">${tData.state} (${tData.uTide.toFixed(2)} m/s)</b><br>Regim: <b class="${isBarat?'text-blue-300':'text-cyan-300'}">${mo.label} (${mo.drift})</b></div>`, { direction: 'top', className: 'custom-tooltip' });
 
     // Polyline aliran sungai hulu ke muara
     const riverLine = [ [-6.845, 110.535], [-6.838, 110.528], [-6.830, 110.522], [originLat, originLng] ];
     L.polyline(riverLine, { pane: 'dsasPane', color: sedColor, weight: 5, opacity: 0.9, dashArray: '12, 12', className: 'flowing-river-line' }).addTo(dynamicMapLayers);
 
-    const ql = DSSPRO.cerc ? DSSPRO.cerc(mo.Hs, mo.Tp, mo.alphaCERC, 0.39) : { Ql_yr: 0 };
     updatePlumeInfoPanel(mo, wKiri, wKanan, ql, tidePhase, uTide);
 };
 
