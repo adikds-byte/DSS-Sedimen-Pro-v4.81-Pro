@@ -355,11 +355,13 @@
         } catch(e) {}
 
     })();
-    </script>
+    
+
+</script>
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSS Sedimen Pro v4.8.1 Professional — Sistem Keputusan Pengelolaan Sedimen Pesisir & Telemetri Pasut Dinamis (Disertasi S3 Teknik Sipil UNDIP)</title>
+    <title>DSS Sedimen Pro v5.0.1 Professional — Sinkronisasi Dinamis Plume Vektor Sedimen Laut & Telemetri Pasut (Disertasi S3 Teknik Sipil UNDIP)</title>
     
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -1115,6 +1117,62 @@
             filter: drop-shadow(0 0 5px rgba(56, 189, 248, 0.6));
         }
 
+
+        /* ANIMASI & GAYA SINKRONISASI PLUME-PASUT V5.0 PRO */
+        .hydro-grid-vector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, 0.82);
+            border: 1.5px solid var(--v-col, #38bdf8);
+            box-shadow: 0 0 10px var(--v-col, rgba(56, 189, 248, 0.6));
+            color: var(--v-col, #38bdf8);
+            font-size: 11px;
+            transition: transform 0.25s linear, border-color 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+            pointer-events: auto;
+        }
+        .marine-plume-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, 0.78);
+            border: 1.5px solid var(--mp-col, #38bdf8);
+            box-shadow: 0 0 8px var(--mp-col, rgba(56, 189, 248, 0.75));
+            color: var(--mp-col, #38bdf8);
+            font-size: 10px;
+            pointer-events: none;
+            will-change: transform;
+        }
+        @keyframes etmPulse {
+            0%, 100% { fill-opacity: 0.22; stroke-opacity: 0.85; stroke-width: 2.5px; }
+            50% { fill-opacity: 0.48; stroke-opacity: 1.0; stroke-width: 4px; }
+        }
+        .etm-zone-pulse {
+            animation: etmPulse 1.8s infinite ease-in-out !important;
+        }
+        @keyframes ebbFrontFlow {
+            0% { stroke-dashoffset: 28; opacity: 0.55; }
+            50% { opacity: 1.0; }
+            100% { stroke-dashoffset: 0; opacity: 0.55; }
+        }
+        .ebb-front-line {
+            animation: ebbFrontFlow 1.6s linear infinite !important;
+            filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.9));
+        }
+        .tide-phase-preset-btn {
+            transition: all 0.2s ease;
+        }
+        .tide-phase-preset-btn.active-phase {
+            box-shadow: 0 0 12px currentColor;
+            transform: scale(1.03);
+        }
+
     </style>
 </head>
 <body id="appBody" class="theme-dark bg-[var(--bg-main)] text-[var(--text-main)] p-3 md:p-5 min-h-screen flex flex-col justify-between overflow-x-hidden relative pb-28">
@@ -1135,10 +1193,10 @@
                     </div>
                     <h1 id="mainAppTitle" class="font-tech text-lg md:text-xl lg:text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-slate-100 to-emerald-400 leading-tight uppercase mt-1">
                         SISTEM PENGELOLAAN SEDIMEN PESISIR BERKELANJUTAN (DSS)
-                     <span class="text-cyan-400 text-[0.6em] align-top">v4.8.1 PRO</span></h1>
+                     <span class="text-cyan-400 text-[0.6em] align-top">v5.0 PRO</span></h1>
                     <p class="text-xs font-mono text-[var(--text-muted)] mt-1 uppercase tracking-wider flex items-center gap-2 font-bold">
                         <span id="sync-status-dot" class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-bounce"></span> 
-                        <span id="sync-status-text">Integrasi Spasial-Dinamis (MIKE21 & VENSIM) · Telemetri Pasut & Dispersi Sedimen Dinamis</span>
+                        <span id="sync-status-text">Integrasi Spasial-Dinamis (MIKE21 & VENSIM) · Sinkronisasi Penuh Plume Vektor Laut & Fase Pasut (Flood / Ebb / Slack)</span>
                     </p>
                 </div>
             </div>
@@ -1295,6 +1353,18 @@
                             <span class="flex items-center gap-1.5"><i class="fa-solid fa-water text-cyan-400 animate-pulse"></i> LAYER SUNGAI &amp; ALIRAN SEDIMEN (KMZ)</span> <span id="chk-sungai" class="text-cyan-400 font-bold">✓</span>
                         </button>
                     </div>
+                    <!-- TOMBOL MEDAN VEKTOR ARUS LAUT 2D & PLUME MULTI-MUARA (V5.0 PRO) -->
+                    <div class="mt-1.5">
+                        <button type="button" onclick="toggleGisLayer('hydrogrid')" id="layerBtn-hydrogrid" class="w-full px-2.5 py-1.5 bg-gradient-to-r from-emerald-950/80 to-slate-950 border border-emerald-500/70 hover:border-emerald-400 text-emerald-300 rounded-lg text-[11px] font-mono font-bold flex items-center justify-between transition-all cursor-pointer shadow-md">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-compass-drafting text-emerald-400 animate-spin" style="animation-duration:6s;"></i> VEKTOR ARUS LAUT 2D &amp; MULTI-MUARA</span> <span id="chk-hydrogrid" class="text-emerald-400 font-bold">✓</span>
+                        </button>
+                    </div>
+                    <!-- TOMBOL EKSPLORER DIREKTORI GOOGLE DRIVE RISET -->
+                    <div class="mt-1.5">
+                        <button type="button" onclick="openGDriveCatalogModal()" class="w-full px-2.5 py-1.5 bg-gradient-to-r from-blue-950/80 to-indigo-950/80 border border-blue-500/70 hover:border-blue-400 text-blue-200 rounded-lg text-[11px] font-mono font-bold flex items-center justify-between transition-all cursor-pointer shadow-md">
+                            <span class="flex items-center gap-1.5"><i class="fa-brands fa-google-drive text-amber-400"></i> KATALOG DATA G-DRIVE MORODEMAK</span> <i class="fa-solid fa-folder-open text-blue-300"></i>
+                        </button>
+                    </div>
                     <!-- LEGENDA RESMI 2 POLIGON KMZ (JRAGUNG KUNING & TUNTANG HIJAU) -->
                     <div class="mt-2.5 p-2.5 bg-slate-950/90 border border-slate-800 rounded-xl font-mono text-[10.5px] space-y-1.5 shadow-inner">
                         <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider flex items-center justify-between border-b border-slate-800/80 pb-1">
@@ -1361,18 +1431,36 @@
                                 <div id="map" class="w-full h-full z-10"></div>
                                 
                                 <div id="mapSpecificUI" class="transition-opacity duration-300 z-20 absolute inset-0 pointer-events-none">
-                                    <!-- TOMBOL KONTROL PASUT & TELEMETRI HUD (v4.8 PRO) -->
-                                    <div class="absolute top-3 left-12 sm:left-14 z-[71] pointer-events-auto flex items-center gap-2">
-                                        <button id="btn-tide-hud-toggle" type="button" onclick="toggleTideHUD()" class="flex items-center gap-1.5 bg-slate-950/90 border-2 border-cyan-500/70 rounded-lg px-2.5 py-1.5 text-[10px] font-black font-mono text-cyan-300 hover:border-cyan-300 hover:bg-cyan-950/60 transition-all cursor-pointer shadow-lg hover:shadow-cyan-500/30" title="Buka / Tutup Grafik Pasut & Telemetri Draggable HUD">
-                                            <i class="fa-solid fa-chart-line text-cyan-400 animate-pulse"></i> GRAFIK PASUT HUD
-                                        </button>
-                                        <button id="btn-tide-anim" type="button" onclick="toggleTideAnim()" class="flex items-center gap-1.5 bg-slate-950/90 border-2 border-slate-700 rounded-lg px-2.5 py-1.5 text-[10px] font-black font-mono text-cyan-300 hover:border-cyan-400 transition-all cursor-pointer shadow-lg" title="Animasikan plume mengikuti arus pasang-surut">
-                                            <i class="fa-solid fa-water"></i> ANIMASI PASUT
-                                        </button>
+                                    <!-- TOMBOL KONTROL PASUT & PRESET FASE SINKRONISASI PLUME (v5.0 PRO) -->
+                                    <div class="absolute top-3 left-12 sm:left-14 z-[71] pointer-events-auto flex flex-col gap-1.5">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <button id="btn-tide-hud-toggle" type="button" onclick="toggleTideHUD()" class="flex items-center gap-1.5 bg-slate-950/90 border-2 border-cyan-500/70 rounded-lg px-2.5 py-1.5 text-[10px] font-black font-mono text-cyan-300 hover:border-cyan-300 hover:bg-cyan-950/60 transition-all cursor-pointer shadow-lg hover:shadow-cyan-500/30" title="Buka / Tutup Grafik Pasut & Telemetri Draggable HUD">
+                                                <i class="fa-solid fa-chart-line text-cyan-400 animate-pulse"></i> GRAFIK PASUT HUD
+                                            </button>
+                                            <button id="btn-tide-anim" type="button" onclick="toggleTideAnim()" class="flex items-center gap-1.5 bg-slate-950/90 border-2 border-slate-700 rounded-lg px-2.5 py-1.5 text-[10px] font-black font-mono text-cyan-300 hover:border-cyan-400 transition-all cursor-pointer shadow-lg" title="Animasikan plume & vektor sedimen mengikuti arus pasang-surut secara sinkron">
+                                                <i class="fa-solid fa-water"></i> ANIMASI PASUT
+                                            </button>
+                                        </div>
+                                        <!-- QUICK JUMP FASE PASUT DI PETA -->
+                                        <div class="flex flex-wrap items-center gap-1 bg-slate-950/90 border border-slate-700/90 rounded-lg p-1 shadow-lg backdrop-blur-md">
+                                            <span class="text-[8.5px] font-mono font-bold text-slate-400 px-1 uppercase">Fase:</span>
+                                            <button type="button" onclick="jumpToTidePhase('FLOOD')" id="mapPhaseBtn-FLOOD" class="tide-phase-preset-btn px-1.5 py-0.5 rounded bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-800 text-[9px] font-mono font-bold cursor-pointer" title="Simulasikan Saat Pasang Naik Maksimum (Flood Tide — Kompresi Plume ke Pantai & ETM)">
+                                                FLOOD ↑
+                                            </button>
+                                            <button type="button" onclick="jumpToTidePhase('HIGH_SLACK')" id="mapPhaseBtn-HIGH_SLACK" class="tide-phase-preset-btn px-1.5 py-0.5 rounded bg-cyan-950/90 border border-cyan-500/60 text-cyan-300 hover:bg-cyan-800 text-[9px] font-mono font-bold cursor-pointer" title="Simulasikan Saat Puncak Pasang Air Tenang (High Slack — Difusi Radial & Pengendapan Maksimum)">
+                                                HIGH SLACK ⟳
+                                            </button>
+                                            <button type="button" onclick="jumpToTidePhase('EBB')" id="mapPhaseBtn-EBB" class="tide-phase-preset-btn px-1.5 py-0.5 rounded bg-amber-950/90 border border-amber-500/60 text-amber-300 hover:bg-amber-800 text-[9px] font-mono font-bold cursor-pointer" title="Simulasikan Saat Surut Turun Maksimum (Ebb Jet — Pancaran Plume Jauh ke Laut Lepas)">
+                                                EBB ↓
+                                            </button>
+                                            <button type="button" onclick="jumpToTidePhase('LOW_SLACK')" id="mapPhaseBtn-LOW_SLACK" class="tide-phase-preset-btn px-1.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/60 text-purple-300 hover:bg-purple-800 text-[9px] font-mono font-bold cursor-pointer" title="Simulasikan Saat Lembah Surut Terendah (Low Slack — Eksposur Gosong Pasir Muara)">
+                                                LOW SLACK ⟳
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- PANEL INFO PLUME (HUD Docked, v4.3 — anti-overlap) -->
-                                    <div id="plumeInfoPanel" class="hidden absolute top-14 left-3 z-[70] pointer-events-auto w-[280px] sm:w-[320px] bg-slate-950/95 border border-cyan-500/50 rounded-xl shadow-2xl backdrop-blur-sm overflow-hidden">
+                                    <div id="plumeInfoPanel" class="hidden absolute top-24 left-3 z-[70] pointer-events-auto w-[280px] sm:w-[320px] bg-slate-950/95 border border-cyan-500/50 rounded-xl shadow-2xl backdrop-blur-sm overflow-hidden">
                                         <div class="flex items-center justify-between px-3 py-2 bg-cyan-950/60 border-b border-cyan-500/40">
                                             <span class="text-[13px] font-black font-mono text-cyan-300 uppercase tracking-wide flex items-center gap-1.5"><i class="fa-solid fa-water"></i> Plume Dispersi Bilateral</span>
                                             <button onclick="closePlumeInfoPanel()" class="text-slate-400 hover:text-white text-base cursor-pointer leading-none"><i class="fa-solid fa-xmark"></i></button>
@@ -2014,6 +2102,7 @@
                     <button id="proTabBtn-ahp" onclick="proSwitchTab('ahp')" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer text-[11px] font-bold"><i class="fa-solid fa-layer-group mr-1"></i> AHP-TOPSIS</button>
                     <button id="proTabBtn-mc" onclick="proSwitchTab('mc')" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer text-[11px] font-bold"><i class="fa-solid fa-dice mr-1"></i> MONTE CARLO</button>
                     <button id="proTabBtn-cba" onclick="proSwitchTab('cba')" class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer text-[11px] font-bold"><i class="fa-solid fa-chart-line mr-1"></i> EKONOMI (CBA)</button>
+                    <button id="proTabBtn-plume" onclick="proSwitchTab('plume')" class="px-2.5 py-1 rounded bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 transition-all cursor-pointer text-[11px] font-bold"><i class="fa-solid fa-arrows-spin mr-1 text-cyan-400"></i> SINKRONISASI PASUT–PLUME &amp; ROUSE 2D</button>
                 </div>
                 <div class="bg-slate-900/60 border-x border-b border-slate-800 flex-1 p-2 sm:p-4">
 
@@ -2209,6 +2298,82 @@
                                 <span class="text-amber-400 font-bold">Garis Impas (y = 0) = Ambang Break-Even</span>
                             </div>
                             <div class="h-[290px] relative"><canvas id="proCbaChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PANE F: SINKRONISASI PASUT–PLUME & PROFIL ROUSE 2D (V5.0 PRO) ===== -->
+                <div id="proPane-plume" class="hidden">
+                    <div class="space-y-3">
+                        <div class="bg-slate-900 border border-cyan-500/40 rounded-xl p-3.5">
+                            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-slate-800">
+                                <div>
+                                    <h3 class="text-xs sm:text-sm font-bold text-cyan-300 font-tech uppercase flex items-center gap-2">
+                                        <i class="fa-solid fa-water text-cyan-400"></i> LABORATORIUM HIDRODINAMIKA KOPEL PASUT–PLUME SEDIMEN &amp; PROFIL ROUSE–WINTERWERP
+                                    </h3>
+                                    <p class="text-[10.5px] text-slate-400 font-mono mt-0.5">
+                                        Evaluasi numerik respons plume sedimen laut terhadap fase Flood, High Slack, Ebb, dan Low Slack beserta distribusi vertikal SSC C(z/h) dan baji salinitas estuari.
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    <button type="button" onclick="jumpToTidePhase('FLOOD'); proRunPlumeSync();" class="px-2 py-1 rounded bg-emerald-950 border border-emerald-500/60 text-emerald-300 text-[10px] font-mono font-bold hover:bg-emerald-900 cursor-pointer">FLOOD ↑</button>
+                                    <button type="button" onclick="jumpToTidePhase('HIGH_SLACK'); proRunPlumeSync();" class="px-2 py-1 rounded bg-cyan-950 border border-cyan-500/60 text-cyan-300 text-[10px] font-mono font-bold hover:bg-cyan-900 cursor-pointer">HIGH SLACK ⟳</button>
+                                    <button type="button" onclick="jumpToTidePhase('EBB'); proRunPlumeSync();" class="px-2 py-1 rounded bg-amber-950 border border-amber-500/60 text-amber-300 text-[10px] font-mono font-bold hover:bg-amber-900 cursor-pointer">EBB ↓</button>
+                                    <button type="button" onclick="jumpToTidePhase('LOW_SLACK'); proRunPlumeSync();" class="px-2 py-1 rounded bg-purple-950 border border-purple-500/60 text-purple-300 text-[10px] font-mono font-bold hover:bg-purple-900 cursor-pointer">LOW SLACK ⟳</button>
+                                    <button type="button" onclick="exportTidePlumeCSV()" class="px-2.5 py-1 rounded bg-cyan-700 hover:bg-cyan-600 text-white text-[10px] font-mono font-bold border border-cyan-400 cursor-pointer shadow"><i class="fa-solid fa-file-csv mr-1"></i> Ekspor CSV 24 Jam</button>
+                                </div>
+                            </div>
+
+                            <!-- PARAMETER FISIS SEDIMENTOLOGI ESTUARI -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3 bg-slate-950/90 p-3 rounded-xl border border-slate-800 text-[10px] font-mono">
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Kecepatan Endap Flokulan w<sub>s</sub> (mm/s)</label>
+                                    <input id="proPlumeWs" type="number" step="0.05" min="0.10" max="2.50" value="0.45" oninput="proRunPlumeSync()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:border-cyan-400 outline-none">
+                                    <span class="text-[9px] text-slate-500">Lanau-lempung kohesif Demak: 0.35–0.65</span>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Tegangan Geser Kritis Erosi τ<sub>cr</sub> (N/m²)</label>
+                                    <input id="proPlumeTauCr" type="number" step="0.02" min="0.08" max="0.80" value="0.22" oninput="proRunPlumeSync()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:border-cyan-400 outline-none">
+                                    <span class="text-[9px] text-slate-500">Ambang resuspensi dasar (van Rijn)</span>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Tegangan Kritis Deposisi τ<sub>d</sub> (N/m²)</label>
+                                    <input id="proPlumeTauD" type="number" step="0.02" min="0.04" max="0.40" value="0.11" oninput="proRunPlumeSync()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:border-cyan-400 outline-none">
+                                    <span class="text-[9px] text-slate-500">Krone (1962) pengendapan penuh</span>
+                                </div>
+                                <div>
+                                    <label class="block text-slate-400 mb-1">Gradien Salinitas Muara ΔS (ppt)</label>
+                                    <input id="proPlumeSalinity" type="number" step="1" min="15" max="35" value="28" oninput="proRunPlumeSync()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white focus:border-cyan-400 outline-none">
+                                    <span class="text-[9px] text-slate-500">Memicu baji salinitas &amp; flokulasi ETM</span>
+                                </div>
+                            </div>
+
+                            <!-- 6 KARTU METRIK SINKRONISASI PASUT-PLUME -->
+                            <div id="proPlumeMetricsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 mt-3"></div>
+                        </div>
+
+                        <!-- DUA GRAFIK UTAMA: SIKLUS 24 JAM PASUT-PLUME & PROFIL VERTIKAL ROUSE / TRANSEK -->
+                        <div class="grid lg:grid-cols-2 gap-3">
+                            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <h4 class="text-xs font-bold text-cyan-400 font-mono"><i class="fa-solid fa-wave-square mr-1"></i> RESPONS DINAMIS PLUME SEDIMEN SELAMA 24 JAM</h4>
+                                    <span class="text-[9.5px] font-mono text-slate-400">Jangkauan Plume (km) vs Fluks Deposisi</span>
+                                </div>
+                                <div class="h-[250px] relative"><canvas id="proPlumeCycleChart"></canvas></div>
+                            </div>
+                            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <h4 class="text-xs font-bold text-amber-400 font-mono"><i class="fa-solid fa-layer-group mr-1"></i> PROFIL VERTIKAL ROUSE C(z/h) — FLOOD vs EBB vs SLACK</h4>
+                                    <span class="text-[9.5px] font-mono text-slate-400">Distribusi Kedalaman Kolom Air</span>
+                                </div>
+                                <div class="h-[250px] relative"><canvas id="proRouseChart"></canvas></div>
+                            </div>
+                        </div>
+
+                        <!-- TABEL KOMPARASI 4 FASE PASUT (FLOOD, HIGH SLACK, EBB, LOW SLACK) -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-xl p-3">
+                            <h4 class="text-xs font-bold text-emerald-400 font-mono mb-2 uppercase"><i class="fa-solid fa-table-list mr-1"></i> MATRIKS SINKRONISASI 4 FASE PASUT TERHADAP VEKTOR &amp; GEOMETRI PLUME SEDIMEN LAUT</h4>
+                            <div id="proPlumePhaseTable" class="overflow-x-auto"></div>
                         </div>
                     </div>
                 </div>
@@ -2429,6 +2594,36 @@
                         <span>16:00</span>
                         <span>20:00</span>
                         <span>24:00</span>
+                    </div>
+                </div>
+
+                <!-- QUICK JUMP 4 FASE PASUT (FLOOD / HIGH SLACK / EBB / LOW SLACK) -->
+                <div class="pt-1 border-t border-slate-800/80">
+                    <div class="flex items-center justify-between text-[9px] font-mono text-slate-400 mb-1">
+                        <span class="uppercase font-bold text-cyan-300"><i class="fa-solid fa-bolt text-amber-400"></i> Pintasan Fase Pasut &amp; Sinkronisasi Plume:</span>
+                        <button type="button" onclick="exportTidePlumeCSV()" class="text-emerald-400 hover:text-emerald-300 underline cursor-pointer font-bold"><i class="fa-solid fa-download"></i> CSV 24J</button>
+                    </div>
+                    <div class="grid grid-cols-4 gap-1 text-[9px] font-mono font-bold">
+                        <button type="button" onclick="jumpToTidePhase('FLOOD')" id="hudPhaseBtn-FLOOD" class="tide-phase-preset-btn py-1 px-1 rounded bg-emerald-950/90 border border-emerald-500/60 text-emerald-300 hover:bg-emerald-900 cursor-pointer text-center">FLOOD ↑</button>
+                        <button type="button" onclick="jumpToTidePhase('HIGH_SLACK')" id="hudPhaseBtn-HIGH_SLACK" class="tide-phase-preset-btn py-1 px-1 rounded bg-cyan-950/90 border border-cyan-500/60 text-cyan-300 hover:bg-cyan-900 cursor-pointer text-center">H-SLACK ⟳</button>
+                        <button type="button" onclick="jumpToTidePhase('EBB')" id="hudPhaseBtn-EBB" class="tide-phase-preset-btn py-1 px-1 rounded bg-amber-950/90 border border-amber-500/60 text-amber-300 hover:bg-amber-900 cursor-pointer text-center">EBB ↓</button>
+                        <button type="button" onclick="jumpToTidePhase('LOW_SLACK')" id="hudPhaseBtn-LOW_SLACK" class="tide-phase-preset-btn py-1 px-1 rounded bg-purple-950/90 border border-purple-500/60 text-purple-300 hover:bg-purple-900 cursor-pointer text-center">L-SLACK ⟳</button>
+                    </div>
+                </div>
+
+                <!-- LIVE COUPLED SEDIMENT-HYDRODYNAMICS TELEMETRY STRIP IN HUD -->
+                <div id="hudCoupledPlumeStrip" class="grid grid-cols-3 gap-1.5 pt-1 text-[9.5px] font-mono text-center">
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5">
+                        <span class="text-[8px] text-slate-400 block uppercase">Jangkauan Plume</span>
+                        <b id="hudPlumeReachVal" class="text-cyan-300 text-[11px]">2.85 km</b>
+                    </div>
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5">
+                        <span class="text-[8px] text-slate-400 block uppercase">Geser Dasar τb</span>
+                        <b id="hudShearStressVal" class="text-amber-300 text-[11px]">0.34 N/m²</b>
+                    </div>
+                    <div class="bg-slate-900/90 border border-slate-800 rounded-lg p-1.5">
+                        <span class="text-[8px] text-slate-400 block uppercase">Rezim Sedimen</span>
+                        <b id="hudSedRegimeVal" class="text-emerald-400 text-[10px]">RETENSI ETM</b>
                     </div>
                 </div>
 
@@ -7278,6 +7473,1451 @@ toggleGisLayer = function(layerKey) {
 };
 
 </script>
+<script id="dssV50UpgradePatch">
+// =========================================================================
+// [V5.0 PRO UPGRADE] SINKRONISASI PENUH PLUME VEKTOR SEDIMEN LAUT & FASE PASUT
+// (FLOOD, HIGH SLACK, EBB, LOW SLACK) + MEDAN VEKTOR 2D + MULTI-MUARA + ROUSE 2D
+// =========================================================================
+
+var plumeParticleLayerGroup = null;
+var hydroGridLayerGroup = null;
+var marinePlumeParticles = [];
+var hydroGridMarkers = [];
+var marinePlumeAnimId = null;
+var marinePlumeLastTime = 0;
+
+// 3 Muara Utama Pesisir Demak (Morodemak/Kali Jajar, Sayung/Jragung, Kliteh/Bonang)
+var ESTUARY_OUTLETS_DEMAK = [
+    { id: "jajar", name: "Muara Utama Kali Jajar Baru & Tuntang (Morodemak)", lat: -6.8240, lng: 110.5180, scale: 1.00, qShare: 0.55 },
+    { id: "sayung", name: "Muara Sungai Jragung / Kali Sayung (Sayung)", lat: -6.8840, lng: 110.5010, scale: 0.62, qShare: 0.28 },
+    { id: "kliteh", name: "Muara Kali Kliteh / Wulan–Bonang", lat: -6.8120, lng: 110.5620, scale: 0.48, qShare: 0.17 }
+];
+
+// Titik Grid Vektor Hidrodinamika 2D di Perairan Laut Demak
+var HYDRO_GRID_POINTS = [
+    { lat: -6.805, lng: 110.475 }, { lat: -6.800, lng: 110.505 }, { lat: -6.795, lng: 110.535 }, { lat: -6.790, lng: 110.565 }, { lat: -6.788, lng: 110.595 },
+    { lat: -6.830, lng: 110.465 }, { lat: -6.822, lng: 110.495 }, { lat: -6.814, lng: 110.525 }, { lat: -6.808, lng: 110.555 }, { lat: -6.802, lng: 110.585 },
+    { lat: -6.860, lng: 110.455 }, { lat: -6.850, lng: 110.482 }, { lat: -6.838, lng: 110.508 }, { lat: -6.825, lng: 110.542 },
+    { lat: -6.895, lng: 110.450 }, { lat: -6.882, lng: 110.478 }, { lat: -6.868, lng: 110.496 },
+    { lat: -6.925, lng: 110.452 }, { lat: -6.912, lng: 110.472 }
+];
+
+// Perhitungan Kopel Fisis Hidrodinamika Pasut - Plume Sedimen Laut (Winterwerp & van Rijn)
+DSSPRO.calcTidePlumeCoupling = function(tData, valDebit, monsoonKey) {
+    const mKey = monsoonKey || MONSOON || 'timur';
+    const mo = DSS_MONSOON[mKey] || DSS_MONSOON.timur;
+    const isBarat = (mKey === 'barat');
+    const Qr = valDebit || 45;
+    const nd = tData.normDeriv; // [-1..+1]: >0 Flood (pasang naik), <0 Ebb (surut turun)
+    const state = tData.state;  // 'FLOOD', 'EBB', 'HIGH_SLACK', 'LOW_SLACK'
+
+    // Parameter sedimen dari input Studio Pro (atau nilai default terkalibrasi Demak)
+    const ws_mm = parseFloat(document.getElementById('proPlumeWs')?.value) || 0.45; // mm/s
+    const ws = ws_mm / 1000.0; // m/s
+    const tauCr = parseFloat(document.getElementById('proPlumeTauCr')?.value) || 0.22; // N/m2
+    const tauD  = parseFloat(document.getElementById('proPlumeTauD')?.value)  || 0.11; // N/m2
+    const dSal  = parseFloat(document.getElementById('proPlumeSalinity')?.value) || 28; // ppt
+
+    // 1. Faktor Geometri Plume Lintas-Pantai (fCross) & Menyusur-Pantai (fAlong)
+    let fCross = 1.0, fAlong = 1.0, lobeBendDeg = 0, wKiri = mo.wKiri, wKanan = mo.wKanan;
+    let regimeName = "", regimeCode = "", mechanicsDesc = "";
+
+    if (state === 'FLOOD') {
+        // Saat Pasang (Flood): Arus dari laut menekan plume ke arah pantai & masuk ke muara (Backwater & ETM)
+        const floodIntensity = Math.max(0.15, nd);
+        fCross = 0.54 - 0.14 * floodIntensity; // menyusut ke arah darat
+        fAlong = 1.34 + 0.28 * floodIntensity; // melebar menyusuri garis pantai & mangrove
+        lobeBendDeg = 28 * floodIntensity;     // kedua lobus melengkung ke arah pantai
+        // Asimetri sedikit teredam oleh dorongan on-shore
+        wKiri  = isBarat ? 0.40 : 0.60;
+        wKanan = isBarat ? 0.60 : 0.40;
+        regimeCode = "FLOOD_RETENTION_ETM";
+        regimeName = "RETENSI PESISIR & ZONA ETM (FLOOD ↑)";
+        mechanicsDesc = "Arus pasang (flood) bergerak menuju pantai (heading 160°–195°), menekan plume ke pesisir, memicu flokulasi di Zona Kekeruhan Maksimum (ETM) muara, dan menyuplai sedimen ke sabuk mangrove.";
+    } else if (state === 'EBB') {
+        // Saat Surut (Ebb): Pancaran jet estuari (Ebb Tidal Jet) menyembur jauh ke laut lepas & terbelokkan arus muson
+        const ebbIntensity = Math.max(0.15, -nd);
+        fCross = 1.28 + 0.45 * ebbIntensity;   // menjorok jauh ke laut lepas
+        fAlong = 0.88 + 0.10 * ebbIntensity;
+        lobeBendDeg = -18 * ebbIntensity * mo.driftDir; // terdefleksi kuat searah longshore drift
+        wKiri  = isBarat ? 0.28 : 0.72;
+        wKanan = isBarat ? 0.72 : 0.28;
+        regimeCode = "EBB_JET_ADVECTION";
+        regimeName = "PANCARAN JET SURUT LEPAS PANTAI (EBB ↓)";
+        mechanicsDesc = `Gradien hidrolik surut memicu Ebb Tidal Jet ke laut lepas dengan kecepatan tinggi; plume memanjang hingga ${(2.5 * fCross).toFixed(1)} km dan menyapu ke ${isBarat ? 'TIMUR (Morodemak–Wedung)' : 'BARAT (Sayung–Semarang)'}.`;
+    } else {
+        // Saat Slack Water (High Slack / Low Slack): Kecepatan pasut minimum -> Difusi Radial & Pengendapan Gravitasi Puncak
+        fCross = state === 'HIGH_SLACK' ? 0.88 : 0.96;
+        fAlong = 1.22;
+        lobeBendDeg = 0;
+        wKiri  = isBarat ? 0.44 : 0.56;
+        wKanan = isBarat ? 0.56 : 0.44;
+        regimeCode = state === 'HIGH_SLACK' ? "HIGH_SLACK_SETTLING" : "LOW_SLACK_SHOALING";
+        regimeName = state === 'HIGH_SLACK' ? "PUNCAK PASANG — DEPOSISI MAKSIMUM (SLACK ⟳)" : "LEMBAH SURUT — EKSPOSUR GOSONG PASIR (SLACK ⟳)";
+        mechanicsDesc = state === 'HIGH_SLACK'
+            ? "Arus pasut berhenti sesaat di puncak pasang (High Slack). Tegangan geser dasar turun di bawah ambang deposisi (τb < τd), memicu pengendapan partikel tersuspensi secara masif."
+            : "Arus pasut tenang di lembah surut terendah (Low Slack). Difusi turbulen radial mendominasi di sekitar gosong pasir muara (+0.45 m LLWL).";
+    }
+
+    // 2. Perhitungan Tegangan Geser Dasar Gabungan Arus-Gelombang (τb) & Bilangan Rouse (P)
+    const rhoW = 1025;
+    const fcw = 0.0032; // koefisien gesek dasar arus-gelombang
+    const uWaveOrb = 0.18 * mo.Hs; // kecepatan orbital gelombang dekat dasar (m/s)
+    const uTotal = Math.sqrt(tData.resSpeed * tData.resSpeed + uWaveOrb * uWaveOrb);
+    const tauB = 0.5 * rhoW * fcw * (uTotal * uTotal); // N/m2
+    const uStar = Math.sqrt(Math.max(1e-5, tauB / rhoW)); // kecepatan geser u* (m/s)
+    const kappa = 0.40; // konstanta von Karman
+    const rouseP = ws / Math.max(1e-4, kappa * uStar);
+
+    // 3. Konsentrasi Inti SSC (mg/L), Fluks Pengendapan (g/m2/jam) & Fluks Erosi Resuspensi
+    const baseSSC = 32 + Qr * 1.35 * (isBarat ? 1.18 : 0.92);
+    const etmMultiplier = state === 'FLOOD' ? 1.32 : (state === 'EBB' ? 1.12 : 0.86);
+    const coreSSC = baseSSC * etmMultiplier; // mg/L (= g/m3)
+
+    // Krone (1962) Deposition Flux: D = ws * C * max(0, 1 - tauB/tauD)
+    const depProb = Math.max(0.05, Math.min(1.0, 1.0 - (tauB / (tauD * 2.8))));
+    const settlingFlux_gm2h = ws * coreSSC * depProb * 3600; // g/m2/jam
+
+    // Partheniades (1965) Erosion / Resuspension state
+    let bedState = "SEIMBANG TRANSPOR";
+    if (tauB > tauCr) bedState = "RESUSPENSI / EROSI";
+    else if (tauB < tauD * 1.3) bedState = "DEPOSISI / FLOKULASI";
+    else if (state === 'FLOOD') bedState = "RETENSI ETM & MANGROVE";
+
+    // 4. Panjang Intrusi Baji Salinitas (Salt-Wedge Intrusion Length Ls) & Bilangan Richardson Estuari (RiE)
+    const hEstuary = Math.max(1.8, 3.2 + tData.elev);
+    const gPrime = 9.81 * (0.00075 * dSal); // reduced gravity m/s2
+    const uRiverMouth = Math.max(0.12, (Qr / 140.0) * (state === 'EBB' ? 1.35 : (state === 'FLOOD' ? 0.55 : 0.85)));
+    const RiE = (gPrime * hEstuary) / Math.pow(uRiverMouth, 2);
+    const saltWedgeKm = Math.max(0.4, Math.min(8.5, 1.45 * (hEstuary / 3.0) * Math.pow(RiE, 0.35) * (state === 'FLOOD' ? 1.45 : (state === 'EBB' ? 0.48 : 1.10))));
+
+    // 5. Radius & Jangkauan Plume Lintas-Pantai (km)
+    let baseRadiusM = (Qr * 38 + 680) * (isBarat ? 1.18 : 1.0);
+    const offshoreReachM = baseRadiusM * fCross;
+    const alongshoreSpanM = baseRadiusM * fAlong * mo.spread;
+    const offshoreReachKm = offshoreReachM / 1000.0;
+
+    return {
+        state, nd, fCross, fAlong, lobeBendDeg, wKiri, wKanan,
+        regimeCode, regimeName, mechanicsDesc,
+        tauB, tauCr, tauD, uStar, rouseP,
+        coreSSC, settlingFlux_gm2h, bedState,
+        RiE, saltWedgeKm, offshoreReachM, alongshoreSpanM, offshoreReachKm,
+        uRiverMouth, ws_mm
+    };
+};
+
+// Fungsi Pembentuk Poligon Lobus Plume yang Beradaptasi dengan Fase Pasut (Flood / Ebb / Slack)
+function buildTideCoupledLobePolygon(originLat, originLng, centerDeg, halfWidthDeg, radiusCrossM, radiusAlongM, state, nd) {
+    const cosLat = Math.cos(originLat * Math.PI / 180);
+    const mPerDeg = 111320;
+    const pts = [[originLat, originLng]];
+
+    for (let a = -halfWidthDeg; a <= halfWidthDeg; a += 2.5) {
+        const rel = a / halfWidthDeg; // [-1..+1]
+        const absRel = Math.abs(rel);
+        const ang = (centerDeg + a) * (Math.PI / 180);
+
+        // Profil bentuk radial berdasarkan fase pasut:
+        // - Saat EBB: Runcing menjulur jauh ke laut lepas (jet-like Gaussian lobe)
+        // - Saat FLOOD: Pipih/tumpul di sisi laut lepas dan melebar di tepi pantai (blunt onshore-compressed lobe)
+        // - Saat SLACK: Membulat simetris (radial diffusive dome)
+        let shapeFactor;
+        if (state === 'EBB') {
+            shapeFactor = 0.25 + 0.75 * Math.pow(Math.cos(absRel * Math.PI * 0.5), 1.45);
+        } else if (state === 'FLOOD') {
+            shapeFactor = 0.38 + 0.62 * Math.pow(Math.cos(absRel * Math.PI * 0.5), 0.65);
+        } else {
+            shapeFactor = 0.35 + 0.65 * Math.cos(absRel * Math.PI * 0.5);
+        }
+
+        // Interpolasi eliptis antara radius lintas-pantai (cross-shore) dan menyusur-pantai (along-shore)
+        const dirCos = Math.cos(ang); // komponen utara-selatan (cross-shore)
+        const dirSin = Math.sin(ang); // komponen barat-timur (along-shore)
+        let rEff = (radiusCrossM * Math.abs(dirCos) + radiusAlongM * Math.abs(dirSin)) * shapeFactor;
+
+        // Saat FLOOD, tahan ekspansi ke utara (laut lepas) agar plume memeluk pesisir
+        let dLat = (rEff / mPerDeg) * dirCos;
+        let dLng = (rEff / (mPerDeg * cosLat)) * dirSin;
+        if (state === 'FLOOD' && dLat > 0) {
+            dLat *= 0.62;
+        } else if (state === 'EBB' && dLat > 0) {
+            dLat *= 1.18;
+        }
+
+        pts.push([originLat + dLat, originLng + dLng]);
+    }
+    return pts;
+}
+
+// Override renderBilateralPlume untuk Sinkronisasi Penuh Plume + Multi-Muara + ETM + Ebb Front
+renderBilateralPlume = function(valDebit, tidePhase) {
+    const mo = DSS_MONSOON[MONSOON];
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const cp = DSSPRO.calcTidePlumeCoupling(tData, valDebit, MONSOON);
+    const isBarat = (MONSOON === 'barat');
+
+    if (window.dynamicMapLayers) {
+        dynamicMapLayers.clearLayers();
+    }
+
+    const sedColor = valDebit > 70 ? '#ef4444' : (valDebit > 40 ? '#f59e0b' : '#10b981');
+    const mPerDeg = 111320;
+
+    // Render Plume untuk Muara Utama (Kali Jajar) + 2 Muara Sekunder (Sayung & Kliteh jika layer hydrogrid aktif)
+    const showMultiEstuary = !hydroGridLayerGroup || map.hasLayer(hydroGridLayerGroup);
+    const activeEstuaries = showMultiEstuary ? ESTUARY_OUTLETS_DEMAK : [ESTUARY_OUTLETS_DEMAK[0]];
+
+    activeEstuaries.forEach((est, idx) => {
+        const oLat = est.lat, oLng = est.lng;
+        const cosLat = Math.cos(oLat * Math.PI / 180);
+        const R_cross = cp.offshoreReachM * est.scale;
+        const R_along = cp.alongshoreSpanM * est.scale;
+
+        // Sudut pusat Lobus Kiri (Barat) & Lobus Kanan (Timur) yang beradaptasi dengan Flood/Ebb/Slack:
+        // Saat FLOOD: melengkung ke arah pantai (Kiri -> 278°, Kanan -> 82°)
+        // Saat EBB: menjorok ke laut & mengikuti drift (Kiri -> 312°..292°, Kanan -> 48°..68°)
+        const leftCenterDeg  = 305 - cp.lobeBendDeg + (cp.state === 'EBB' ? (isBarat ? 12 : -14) : 0);
+        const rightCenterDeg = 55  + cp.lobeBendDeg + (cp.state === 'EBB' ? (isBarat ? 14 : -12) : 0);
+        const halfWidth = cp.state === 'FLOOD' ? 58 : (cp.state === 'EBB' ? 46 : 62);
+
+        const drawEstuaryLobe = (centerDeg, weight, sideLabel) => {
+            const rings = [
+                { f: 1.00, op: idx === 0 ? 0.10 : 0.07, col: '#38bdf8', dash: '10, 10' },
+                { f: 0.65, op: idx === 0 ? 0.18 : 0.12, col: '#f59e0b', dash: '6, 8'  },
+                { f: 0.34, op: idx === 0 ? 0.34 : 0.24, col: sedColor, dash: ''       }
+            ];
+            const rC = R_cross * (0.50 + 0.85 * weight);
+            const rA = R_along * (0.50 + 0.85 * weight);
+
+            rings.forEach(rg => {
+                const polyPts = buildTideCoupledLobePolygon(
+                    oLat, oLng, centerDeg, halfWidth * rg.f + 5,
+                    rC * rg.f, rA * rg.f, cp.state, cp.nd
+                );
+                L.polygon(polyPts, {
+                    pane: 'dsasPane',
+                    color: rg.col,
+                    weight: rg.f < 0.5 ? 2.4 : 1.4,
+                    fillColor: rg.col,
+                    fillOpacity: rg.op,
+                    opacity: 0.88,
+                    dashArray: rg.dash,
+                    lineJoin: 'round',
+                    className: 'plume-blinking'
+                }).addTo(dynamicMapLayers);
+            });
+
+            if (idx === 0) {
+                const angL = centerDeg * Math.PI / 180;
+                const lblLat = oLat + ((rC * 0.66) / mPerDeg) * Math.cos(angL) * (cp.state === 'FLOOD' ? 0.65 : 1.0);
+                const lblLng = oLng + ((rA * 0.66) / (mPerDeg * cosLat)) * Math.sin(angL);
+                const areaKm2 = Math.PI * (rC / 1000) * (rA / 1000) * 0.45;
+                const lobeSSC = Math.round(cp.coreSSC * (0.65 + 0.70 * weight));
+                L.circleMarker([lblLat, lblLng], {
+                    pane: 'dsasPane', radius: 5.5, color: '#ffffff', weight: 1.5, fillColor: sedColor, fillOpacity: 0.95
+                }).bindTooltip(
+                    `<div class="font-mono text-[10px] leading-relaxed">
+                        <b class="text-white">${sideLabel} — ${est.name}</b><br>
+                        Fase Pasut: <b class="${cp.state==='FLOOD'?'text-emerald-300':(cp.state==='EBB'?'text-amber-300':'text-cyan-300')}">${cp.regimeName}</b><br>
+                        Jangkauan Lintas-Pantai: <b class="text-cyan-300">${(rC/1000).toFixed(2)} km</b><br>
+                        Luas Sebaran Lobus: <b class="text-amber-300">${areaKm2.toFixed(2)} km²</b><br>
+                        Konsentrasi SSC: <b class="text-orange-300">${lobeSSC} mg/L</b> (Bobot ${Math.round(weight*100)}%)<br>
+                        Fluks Pengendapan: <b class="text-emerald-300">${cp.settlingFlux_gm2h.toFixed(0)} g/m²/jam</b>
+                    </div>`,
+                    { direction: 'top', className: 'custom-tooltip' }
+                ).addTo(dynamicMapLayers);
+            }
+        };
+
+        drawEstuaryLobe(leftCenterDeg, cp.wKiri, "LOBUS KIRI (BARAT)");
+        drawEstuaryLobe(rightCenterDeg, cp.wKanan, "LOBUS KANAN (TIMUR)");
+
+        // FITUR FISIS KHUSUS FASE PASUT DI MULUT MUARA:
+        // 1. Saat FLOOD: Gambar Zona ETM (Estuarine Turbidity Maximum & Intrusi Baji Salinitas)
+        if (cp.state === 'FLOOD') {
+            const etmPts = buildTideCoupledLobePolygon(oLat, oLng, 0, 82, R_cross * 0.36, R_along * 0.42, 'FLOOD', cp.nd);
+            L.polygon(etmPts, {
+                pane: 'dsasPane',
+                color: '#f43f5e',
+                weight: 2.5,
+                fillColor: '#fb7185',
+                fillOpacity: 0.32,
+                dashArray: '4, 4',
+                className: 'etm-zone-pulse'
+            }).bindTooltip(
+                `<div class="font-mono text-[10px]">
+                    <b class="text-rose-300"><i class="fa-solid fa-compress"></i> ZONA ETM &amp; BAJI SALINITAS (FLOOD BACKWATER)</b><br>
+                    Lokasi: <b>${est.name}</b><br>
+                    Intrusi Air Laut: <b class="text-cyan-300">${cp.saltWedgeKm.toFixed(2)} km ke hulu</b><br>
+                    Konsentrasi Puncak ETM: <b class="text-amber-300">${Math.round(cp.coreSSC * 1.15)} mg/L</b>
+                </div>`,
+                { direction: 'top', className: 'custom-tooltip' }
+            ).addTo(dynamicMapLayers);
+        }
+
+        // 2. Saat EBB: Gambar Garis Front Plume Pasut (Offshore Ebb Tidal Plume Front)
+        if (cp.state === 'EBB' && idx === 0) {
+            const domDeg = isBarat ? rightCenterDeg : leftCenterDeg;
+            const domR_C = R_cross * (0.50 + 0.85 * Math.max(cp.wKiri, cp.wKanan)) * 1.04;
+            const domR_A = R_along * (0.50 + 0.85 * Math.max(cp.wKiri, cp.wKanan)) * 1.04;
+            const frontArc = [];
+            for (let a = -42; a <= 42; a += 4) {
+                const ang = (domDeg + a) * (Math.PI / 180);
+                const dLat = (domR_C / mPerDeg) * Math.cos(ang) * 1.12;
+                const dLng = (domR_A / (mPerDeg * cosLat)) * Math.sin(ang);
+                frontArc.push([oLat + dLat, oLng + dLng]);
+            }
+            L.polyline(frontArc, {
+                pane: 'dsasPane',
+                color: '#38bdf8',
+                weight: 3.5,
+                dashArray: '10, 8',
+                className: 'ebb-front-line'
+            }).bindTooltip(
+                `<div class="font-mono text-[10px]">
+                    <b class="text-cyan-300"><i class="fa-solid fa-water"></i> GARIS FRONT PLUME SURUT (EBB TIDAL FRONT)</b><br>
+                    Jangkauan Maksimum: <b class="text-amber-300">${(domR_C/1000).toFixed(2)} km lepas pantai</b><br>
+                    Kecepatan Pancaran Muara: <b class="text-white">${tData.resSpeed.toFixed(2)} m/s</b>
+                </div>`,
+                { sticky: true, className: 'custom-tooltip' }
+            ).addTo(dynamicMapLayers);
+        }
+
+        // 3. Saat SLACK WATER: Gambar Cincin Deposisi & Flokulasi Radial
+        if (cp.state === 'HIGH_SLACK' || cp.state === 'LOW_SLACK') {
+            L.circle([oLat, oLng], {
+                pane: 'dsasPane',
+                radius: R_cross * 0.42,
+                color: '#fbbf24',
+                weight: 2,
+                dashArray: '5, 6',
+                fillColor: '#fde047',
+                fillOpacity: 0.18
+            }).bindTooltip(
+                `<div class="font-mono text-[10px]">
+                    <b class="text-amber-300"><i class="fa-solid fa-arrows-to-circle"></i> ZONA DEPOSISI PUNCAK SLACK WATER</b><br>
+                    Tegangan Geser Dasar τb: <b class="text-emerald-300">${cp.tauB.toFixed(3)} N/m²</b> (&lt; τcr)<br>
+                    Fluks Pengendapan: <b class="text-yellow-300">${cp.settlingFlux_gm2h.toFixed(0)} g/m²/jam</b>
+                </div>`,
+                { direction: 'top', className: 'custom-tooltip' }
+            ).addTo(dynamicMapLayers);
+        }
+    });
+
+    // =====================================================================
+    // INDIKATOR VEKTOR MAKRO GELOMBANG, ARUS SUSUR PANTAI & ARUS PASUT
+    // =====================================================================
+    const originLat = -6.824, originLng = 110.518;
+    const cosLat = Math.cos(originLat * Math.PI / 180);
+    const ql = (window.DSSPRO && DSSPRO.cerc) ? DSSPRO.cerc(mo.Hs, mo.Tp, mo.alphaCERC, 0.39) : { Ql_yr: 0 };
+
+    // A. Badge Vektor Gelombang Datang Signifikan
+    const waveIncidenceAngle = isBarat ? 315 : 45;
+    const wavePropAngle = isBarat ? 135 : 225;
+    const waveDistDeg = 0.040;
+    const waveLat = originLat + waveDistDeg * Math.cos(waveIncidenceAngle * Math.PI / 180);
+    const waveLng = originLng + (waveDistDeg / cosLat) * Math.sin(waveIncidenceAngle * Math.PI / 180);
+    const waveIconRot = wavePropAngle - 90;
+
+    const waveIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.94);border:2px solid ${isBarat?'#60a5fa':'#22d3ee'};border-radius:20px;padding:4px 10px;box-shadow:0 0 14px rgba(0,0,0,0.85);white-space:nowrap;pointer-events:auto;">
+            <div style="width:22px;height:22px;border-radius:50%;background:${isBarat?'#2563eb':'#0891b2'};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${waveIconRot}deg);">
+                <i class="fa-solid fa-arrow-right text-[11px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-white font-black">GELOMBANG ${isBarat?'BARAT LAUT (315°)':'TIMUR LAUT (45°)'}</span><br>
+                <span class="text-slate-300">Hs=${mo.Hs.toFixed(2)}m · Tp=${mo.Tp.toFixed(1)}s</span>
+            </div>
+        </div>`,
+        className: '', iconSize: [210, 32], iconAnchor: [105, 16]
+    });
+    L.marker([waveLat, waveLng], { icon: waveIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b>Gelombang Datang Signifikan</b><br>${mo.label} (${mo.bulan})<br>Arah datang: <b>${mo.arah}</b></div>`, { direction: 'top', className: 'custom-tooltip' })
+        .addTo(dynamicMapLayers);
+
+    // B. Badge Vektor Resultan Pasut & Arus Susur Pantai (Sinkron dengan Flood / Ebb / Slack)
+    const driftTargetAngle = cp.state === 'FLOOD' ? (isBarat ? 150 : 205) : (cp.state === 'EBB' ? (isBarat ? 68 : 292) : (isBarat ? 82 : 262));
+    const driftLat = originLat + 0.024 * Math.cos(driftTargetAngle * Math.PI / 180) + (cp.state === 'FLOOD' ? 0.022 : 0.008);
+    const driftLng = originLng + (0.028 / cosLat) * Math.sin(driftTargetAngle * Math.PI / 180);
+    const driftIconRot = driftTargetAngle - 90;
+    const badgeBorderCol = cp.state === 'FLOOD' ? '#10b981' : (cp.state === 'EBB' ? '#f59e0b' : '#38bdf8');
+    const badgeBgCol     = cp.state === 'FLOOD' ? '#047857' : (cp.state === 'EBB' ? '#b45309' : '#0e7490');
+
+    const driftIcon = L.divIcon({
+        html: `<div style="display:flex;align-items:center;gap:6px;background:rgba(15,23,42,0.95);border:2px solid ${badgeBorderCol};border-radius:24px;padding:5px 12px;box-shadow:0 0 16px ${badgeBorderCol}88;white-space:nowrap;pointer-events:auto;" class="drift-arrow-pulse">
+            <div style="width:24px;height:24px;border-radius:50%;background:${badgeBgCol};display:flex;align-items:center;justify-content:center;color:#fff;transform:rotate(${driftIconRot}deg);border:1.5px solid #fff;">
+                <i class="fa-solid fa-arrow-right text-[12px]"></i>
+            </div>
+            <div style="font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1.2;">
+                <span class="text-amber-300 font-black">${cp.state === 'FLOOD' ? 'ARUS PASANG KE PANTAI (FLOOD ↑)' : (cp.state === 'EBB' ? 'JET SURUT & DRIFT (EBB ↓)' : 'DIFUSI AIR TENANG (SLACK ⟳)')}</span><br>
+                <span class="text-cyan-200 font-bold">u=${tData.resSpeed.toFixed(2)}m/s · Heading ${tData.heading}° (${isBarat ? 'Timur →' : '← Barat'})</span>
+            </div>
+        </div>`,
+        className: '', iconSize: [248, 36], iconAnchor: [124, 18]
+    });
+    L.marker([driftLat, driftLng], { icon: driftIcon, pane: 'stationsPane' })
+        .bindTooltip(`<div class="font-mono text-[10px]"><b class="text-white">${cp.regimeName}</b><br>${cp.mechanicsDesc}<br>Angkutan Longshore Ql ≈ <b>${(ql.Ql_yr/1000).toFixed(0)} rb m³/th</b></div>`, { direction: 'top', className: 'custom-tooltip' })
+        .addTo(dynamicMapLayers);
+
+    // Pastikan Mesin Vektor Laut 60fps & Medan Vektor 2D berjalan mulus tanpa flicker
+    if (!plumeParticleLayerGroup || marinePlumeParticles.length === 0) {
+        initMarinePlumeVectorEngine();
+    }
+    updateHydrodynamicGridVectors(tData, cp);
+    updatePlumeInfoPanel(mo, cp.wKiri, cp.wKanan, ql, tidePhase, tData.uTide, cp, tData);
+    updateHudCoupledPlumeStrip(cp);
+};
+
+function updateHudCoupledPlumeStrip(cp) {
+    const rEl = document.getElementById('hudPlumeReachVal');
+    if (rEl) rEl.innerText = `${cp.offshoreReachKm.toFixed(2)} km`;
+    const sEl = document.getElementById('hudShearStressVal');
+    if (sEl) {
+        sEl.innerText = `${cp.tauB.toFixed(2)} N/m²`;
+        sEl.className = cp.tauB > cp.tauCr ? "text-rose-400 text-[11px]" : (cp.tauB < cp.tauD * 1.3 ? "text-emerald-400 text-[11px]" : "text-amber-300 text-[11px]");
+    }
+    const regEl = document.getElementById('hudSedRegimeVal');
+    if (regEl) {
+        regEl.innerText = cp.bedState;
+        regEl.className = cp.bedState.includes("EROS") ? "text-rose-400 text-[9.5px]" : (cp.bedState.includes("DEPOS") ? "text-cyan-300 text-[9.5px]" : "text-emerald-400 text-[9.5px]");
+    }
+    // Highlight active phase preset buttons
+    ['FLOOD', 'HIGH_SLACK', 'EBB', 'LOW_SLACK'].forEach(st => {
+        const mBtn = document.getElementById('mapPhaseBtn-' + st);
+        const hBtn = document.getElementById('hudPhaseBtn-' + st);
+        const isAct = (cp.state === st);
+        if (mBtn) mBtn.classList.toggle('active-phase', isAct);
+        if (hBtn) hBtn.classList.toggle('active-phase', isAct);
+    });
+}
+
+// Upgrade Panel Info Plume agar menampilkan Matriks Sinkronisasi Pasut–Plume secara lengkap
+updatePlumeInfoPanel = function(mo, wKiri, wKanan, ql, tidePhase, uTide, cpOpt, tDataOpt) {
+    const panel = document.getElementById('plumeInfoPanel');
+    const body = document.getElementById('plumeInfoBody');
+    if (!panel || !body) return;
+
+    const tData = tDataOpt || calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const cp = cpOpt || DSSPRO.calcTidePlumeCoupling(tData, valDebit, MONSOON);
+
+    const hInt = Math.floor(TIDE_HOUR);
+    const mInt = Math.round((TIDE_HOUR - hInt) * 60);
+    const timeStr = `H-${TIDE_DAY} · ${String(hInt).padStart(2, '0')}:${String(mInt).padStart(2, '0')} WIB`;
+
+    const stateColor = cp.state === 'FLOOD' ? 'text-emerald-300 border-emerald-500/50 bg-emerald-950/60'
+                     : (cp.state === 'EBB' ? 'text-amber-300 border-amber-500/50 bg-amber-950/60'
+                     : 'text-cyan-300 border-cyan-500/50 bg-cyan-950/60');
+
+    body.innerHTML = `
+        <div class="p-2 rounded-lg border ${stateColor}">
+            <div class="flex justify-between items-center text-[10px] font-bold uppercase">
+                <span><i class="fa-solid fa-link"></i> Status Kopel Pasut–Plume</span>
+                <span>${timeStr}</span>
+            </div>
+            <div class="font-black text-[12.5px] mt-0.5">${cp.regimeName}</div>
+            <div class="text-[10.5px] text-slate-200 mt-1 leading-snug font-sans">${cp.mechanicsDesc}</div>
+        </div>
+
+        <div class="grid grid-cols-3 gap-1.5 text-center bg-slate-900/80 rounded-lg p-2 border border-slate-800 text-[11px]">
+            <div><span class="text-[9.5px] text-slate-400 block">Elevasi η</span><b class="text-cyan-300">${tData.elev >= 0 ? '+' : ''}${tData.elev.toFixed(2)} m</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Arus Pasut u</span><b class="text-white">${tData.uTide.toFixed(2)} m/s</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Arah Vektor</span><b class="text-amber-300">${tData.heading}°</b></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-900/60 rounded-lg p-2 border border-slate-800/80 text-[11px]">
+            <div><span class="text-[9.5px] text-slate-400 block">Jangkauan Plume:</span><b class="text-cyan-300">${cp.offshoreReachKm.toFixed(2)} km</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Konsentrasi Inti:</span><b class="text-orange-300">${Math.round(cp.coreSSC)} mg/L</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Tegangan Geser τb:</span><b class="${cp.tauB>cp.tauCr?'text-rose-400':'text-emerald-300'}">${cp.tauB.toFixed(2)} N/m²</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Fluks Endap:</span><b class="text-yellow-300">${cp.settlingFlux_gm2h.toFixed(0)} g/m²/j</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Baji Salinitas:</span><b class="text-purple-300">${cp.saltWedgeKm.toFixed(2)} km</b></div>
+            <div><span class="text-[9.5px] text-slate-400 block">Bil. Rouse (P):</span><b class="text-sky-300">${cp.rouseP.toFixed(2)}</b></div>
+        </div>
+
+        <div class="flex justify-between items-center text-[11.5px] px-1">
+            <span class="text-slate-300">Distribusi Lobus (${mo.label}):</span>
+            <span><b class="text-sky-300">Kiri ${Math.round(wKiri*100)}%</b> · <b class="text-amber-300">Kanan ${Math.round(wKanan*100)}%</b></span>
+        </div>
+
+        <div class="pt-1.5 border-t border-slate-800 flex justify-between items-center text-[10px]">
+            <button type="button" onclick="openStudioPro(); setTimeout(()=>proSwitchTab('plume'),80);" class="text-cyan-400 hover:text-cyan-300 underline font-bold cursor-pointer">
+                <i class="fa-solid fa-microscope"></i> Studio Pasut–Plume 2D
+            </button>
+            <button type="button" onclick="openGDriveCatalogModal()" class="text-blue-400 hover:text-blue-300 underline flex items-center gap-1 cursor-pointer font-bold">
+                <i class="fa-brands fa-google-drive"></i> Katalog G-Drive
+            </button>
+        </div>
+    `;
+    panel.classList.remove('hidden');
+};
+
+// =========================================================================
+// MESIN PARTIKEL VEKTOR PLUME LAUT 60FPS & MEDAN VEKTOR HIDRODINAMIKA 2D
+// =========================================================================
+function initMarinePlumeVectorEngine() {
+    if (!plumeParticleLayerGroup) {
+        plumeParticleLayerGroup = L.layerGroup().addTo(map);
+    }
+    if (!hydroGridLayerGroup) {
+        hydroGridLayerGroup = L.layerGroup().addTo(map);
+    }
+
+    plumeParticleLayerGroup.clearLayers();
+    marinePlumeParticles = [];
+
+    // Buat 72 partikel vektor sedimen laut di sekitar 3 muara utama Demak
+    ESTUARY_OUTLETS_DEMAK.forEach((est, eIdx) => {
+        const count = eIdx === 0 ? 44 : (eIdx === 1 ? 16 : 12);
+        for (let i = 0; i < count; i++) {
+            const lobeSide = (i % 2 === 0) ? 'kanan' : 'kiri';
+            const relProg = (i / count);
+            const angleSpread = (Math.random() * 2 - 1) * 44;
+            const iconHtml = `
+                <div class="marine-plume-arrow" style="--mp-col: #38bdf8; transform: rotate(0deg);">
+                    <i class="fa-solid fa-location-arrow"></i>
+                </div>`;
+            const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [20, 20], iconAnchor: [10, 10] });
+            const marker = L.marker([est.lat, est.lng], { icon: icon, interactive: false, pane: 'stationsPane' }).addTo(plumeParticleLayerGroup);
+
+            marinePlumeParticles.push({
+                marker: marker,
+                estuary: est,
+                lobeSide: lobeSide,
+                progress: relProg,
+                angleSpread: angleSpread,
+                radialBias: 0.35 + 0.65 * Math.random()
+            });
+        }
+    });
+
+    // Inisialisasi 19 Stasiun Medan Vektor Hidrodinamika 2D di Laut Demak
+    hydroGridLayerGroup.clearLayers();
+    hydroGridMarkers = [];
+    HYDRO_GRID_POINTS.forEach((pt, idx) => {
+        const iconHtml = `
+            <div class="hydro-grid-vector" id="hydroVec-${idx}" style="--v-col: #38bdf8; transform: rotate(0deg);">
+                <i class="fa-solid fa-arrow-right"></i>
+            </div>`;
+        const icon = L.divIcon({ html: iconHtml, className: '', iconSize: [26, 26], iconAnchor: [13, 13] });
+        const m = L.marker([pt.lat, pt.lng], { icon: icon, interactive: true, pane: 'stationsPane' }).addTo(hydroGridLayerGroup);
+        m.bindTooltip(`<div class="font-mono text-[10px]" id="hydroTip-${idx}">Memuat Vektor Arus...</div>`, { direction: 'top', className: 'custom-tooltip' });
+        hydroGridMarkers.push({ marker: m, lat: pt.lat, lng: pt.lng, idx: idx });
+    });
+
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const cp = DSSPRO.calcTidePlumeCoupling(tData, valDebit, MONSOON);
+    updateHydrodynamicGridVectors(tData, cp);
+
+    if (!marinePlumeAnimId) {
+        marinePlumeLastTime = performance.now();
+        marinePlumeAnimId = requestAnimationFrame(stepMarinePlumeVectorEngine);
+    }
+}
+
+function updateHydrodynamicGridVectors(tData, cp) {
+    if (!hydroGridMarkers || hydroGridMarkers.length === 0) return;
+    const isBarat = (MONSOON === 'barat');
+
+    hydroGridMarkers.forEach(item => {
+        // Variasi spasial berdasarkan jarak ke Muara Kali Jajar (-6.824, 110.518)
+        const dLat = item.lat - (-6.824);
+        const dLng = item.lng - 110.518;
+        const distKm = Math.sqrt(dLat * dLat + dLng * dLng) * 111.32;
+        const jetInfluence = Math.exp(-distKm / 4.2);
+
+        let localHeading = tData.heading;
+        let localSpeed = tData.resSpeed;
+        let vecCol = '#38bdf8';
+
+        if (cp.state === 'FLOOD') {
+            // Arus pasang bergerak dari laut menuju garis pantai (Tenggara/Selatan 150°–195°)
+            const onshoreAngle = isBarat ? (145 + (item.lng - 110.50) * 120) : (200 + (item.lng - 110.50) * 100);
+            localHeading = Math.round((onshoreAngle + 360) % 360);
+            localSpeed = tData.uTide * (0.85 + 0.25 * (1 - jetInfluence));
+            vecCol = '#10b981'; // Hijau zamrud (Flood Onshore Retention)
+        } else if (cp.state === 'EBB') {
+            // Arus surut: dekat muara menyembur ke utara/laut lepas (345°–15°), jauh dari muara berbelok mengikuti drift muson (Timur 68° / Barat 290°)
+            const driftAng = isBarat ? 68 : 290;
+            const jetAng = Math.atan2(dLng, Math.max(0.005, dLat)) * 180 / Math.PI;
+            const blendedAng = jetInfluence * jetAng + (1 - jetInfluence) * (isBarat ? 68 : -70);
+            localHeading = Math.round((blendedAng + 360) % 360);
+            localSpeed = tData.resSpeed * (0.90 + 0.45 * jetInfluence);
+            vecCol = isBarat ? '#60a5fa' : '#22d3ee'; // Biru/Sian (Ebb Offshore Jet)
+        } else {
+            // Slack water: kecepatan rendah, arah melingkar/difusif mengikuti residu muson
+            localHeading = Math.round(((isBarat ? 78 : 278) + Math.sin(item.idx) * 22 + 360) % 360);
+            localSpeed = Math.max(0.05, tData.resSpeed * 0.45);
+            vecCol = '#fbbf24'; // Kuning Emas (Slack Water Settling)
+        }
+
+        const cssRot = localHeading - 90;
+        const scale = Math.max(0.78, Math.min(1.28, 0.75 + localSpeed * 0.65));
+        const el = item.marker.getElement();
+        if (el) {
+            const vecDiv = el.querySelector('.hydro-grid-vector');
+            if (vecDiv) {
+                vecDiv.style.transform = `rotate(${cssRot}deg) scale(${scale.toFixed(2)})`;
+                vecDiv.style.setProperty('--v-col', vecCol);
+            }
+        }
+        item.marker.setTooltipContent(
+            `<div class="font-mono text-[10px]">
+                <b class="text-cyan-300">Grid Hidrodinamika 2D #${item.idx + 1}</b><br>
+                Fase Pasut: <b>${cp.state}</b><br>
+                Kecepatan Lokal u: <b class="text-white">${localSpeed.toFixed(2)} m/s</b> (${(localSpeed*1.944).toFixed(2)} kn)<br>
+                Arah Arus: <b class="text-amber-300">${localHeading}°</b> · Jarak Muara: <b>${distKm.toFixed(1)} km</b>
+            </div>`
+        );
+    });
+}
+
+function stepMarinePlumeVectorEngine(time) {
+    if (!plumeParticleLayerGroup || !map.hasLayer(plumeParticleLayerGroup)) {
+        marinePlumeAnimId = requestAnimationFrame(stepMarinePlumeVectorEngine);
+        return;
+    }
+
+    let dt = (time - marinePlumeLastTime) / 1000.0;
+    marinePlumeLastTime = time;
+    if (dt > 0.1) dt = 0.1;
+
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const cp = DSSPRO.calcTidePlumeCoupling(tData, valDebit, MONSOON);
+    const isBarat = (MONSOON === 'barat');
+    const mPerDeg = 111320;
+
+    const showMultiEstuary = !hydroGridLayerGroup || map.hasLayer(hydroGridLayerGroup);
+
+    // Kecepatan propagasi partikel bergantung langsung pada kecepatan resultan pasut + debit
+    const speedFactor = cp.state === 'EBB'
+        ? (0.28 + 0.35 * tData.resSpeed)
+        : (cp.state === 'FLOOD' ? (0.22 + 0.28 * tData.uTide) : 0.11);
+
+    marinePlumeParticles.forEach(p => {
+        if (!showMultiEstuary && p.estuary.id !== 'jajar') {
+            p.marker.setOpacity(0);
+            return;
+        }
+        p.marker.setOpacity(1);
+
+        p.progress += dt * speedFactor * (0.75 + 0.5 * p.radialBias);
+        if (p.progress >= 1.0) p.progress -= 1.0;
+
+        const oLat = p.estuary.lat, oLng = p.estuary.lng;
+        const cosLat = Math.cos(oLat * Math.PI / 180);
+        const weight = p.lobeSide === 'kanan' ? cp.wKanan : cp.wKiri;
+        const maxR_C = cp.offshoreReachM * p.estuary.scale * (0.50 + 0.85 * weight) * p.radialBias;
+        const maxR_A = cp.alongshoreSpanM * p.estuary.scale * (0.50 + 0.85 * weight) * p.radialBias;
+
+        // Lintasan & Arah Partikel Berdasarkan Fase Pasut:
+        let curLat, curLng, headingDeg, col;
+
+        if (cp.state === 'EBB') {
+            // SAAT EBB (SURUT): Partikel menyembur keluar dari mulut muara (s=0 -> s=1) dan melengkung mengikuti arus susur pantai musonal!
+            const s = p.progress;
+            const baseAng = p.lobeSide === 'kanan' ? (42 + p.angleSpread * 0.6) : (318 + p.angleSpread * 0.6);
+            const driftBend = (isBarat ? 28 : -28) * Math.pow(s, 1.3);
+            const rayAng = (baseAng + driftBend) * (Math.PI / 180);
+            const nextAng = (baseAng + (isBarat ? 28 : -28) * Math.pow(Math.min(1, s + 0.05), 1.3)) * (Math.PI / 180);
+
+            const dLat = ((s * maxR_C * 1.12) / mPerDeg) * Math.cos(rayAng);
+            const dLng = ((s * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayAng);
+            curLat = oLat + dLat;
+            curLng = oLng + dLng;
+
+            const nLat = oLat + (((s + 0.05) * maxR_C * 1.12) / mPerDeg) * Math.cos(nextAng);
+            const nLng = oLng + (((s + 0.05) * maxR_A) / (mPerDeg * cosLat)) * Math.sin(nextAng);
+            headingDeg = (Math.atan2((nLng - curLng) * cosLat, nLat - curLat) * 180 / Math.PI + 360) % 360;
+            col = isBarat ? '#60a5fa' : '#38bdf8';
+        } else if (cp.state === 'FLOOD') {
+            // SAAT FLOOD (PASANG): Arus pasang dari laut bergerak masuk ke arah pantai & muara, lalu menyebar ke sabuk mangrove tepi pantai!
+            const s = 1.0 - p.progress; // Bergerak dari luar menuju pantai/muara & menyusur pesisir
+            const baseAng = p.lobeSide === 'kanan' ? (72 + p.angleSpread * 0.55) : (288 + p.angleSpread * 0.55);
+            const rayAng = baseAng * (Math.PI / 180);
+
+            const dLat = ((s * maxR_C * 0.68) / mPerDeg) * Math.cos(rayAng);
+            const dLng = (((0.25 + 0.75 * (1 - s)) * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayAng);
+            curLat = oLat + dLat;
+            curLng = oLng + dLng;
+
+            // Vektor menunjuk ke arah pantai & menyusur sabuk mangrove (150°..210°)
+            headingDeg = (p.lobeSide === 'kanan' ? (135 + 35 * (1 - s)) : (225 - 35 * (1 - s)) + 360) % 360;
+            col = '#10b981';
+        } else {
+            // SAAT SLACK WATER: Partikel bergerak lambat secara radial-difusif & mengendap
+            const s = p.progress;
+            const baseAng = p.lobeSide === 'kanan' ? (58 + p.angleSpread * 0.8) : (302 + p.angleSpread * 0.8);
+            const swirl = Math.sin(s * Math.PI * 2) * 12;
+            const rayAng = (baseAng + swirl) * (Math.PI / 180);
+
+            curLat = oLat + ((s * maxR_C * 0.85) / mPerDeg) * Math.cos(rayAng);
+            curLng = oLng + ((s * maxR_A * 0.85) / (mPerDeg * cosLat)) * Math.sin(rayAng);
+            headingDeg = (baseAng + swirl + 360) % 360;
+            col = '#fbbf24';
+        }
+
+        p.marker.setLatLng([curLat, curLng]);
+        // fa-location-arrow secara default menunjuk 45° (Timur Laut), sehingga rotasi kompas = headingDeg - 45
+        const iconRot = headingDeg - 45;
+        const el = p.marker.getElement();
+        if (el) {
+            const arrowDiv = el.querySelector('.marine-plume-arrow');
+            if (arrowDiv) {
+                arrowDiv.style.transform = `rotate(${iconRot.toFixed(1)}deg)`;
+                arrowDiv.style.setProperty('--mp-col', col);
+            }
+        }
+    });
+
+    marinePlumeAnimId = requestAnimationFrame(stepMarinePlumeVectorEngine);
+}
+
+// =========================================================================
+// SINKRONISASI STREAMLINE PANAH SEDIMEN SUNGAI KE LAUT DENGAN FASE PASUT
+// =========================================================================
+// Tambahkan jalur pesisir saat Pasang (Flood Coastal Trapping Path) & saat Slack Water
+SEDIMENT_STREAMLINES_DEF.forEach(st => {
+    const mouth = st.river[st.river.length - 1];
+    // Saat FLOOD: aliran keluar muara tertahan arus pasang dan berbelok menyusuri tepi pantai masuk ke sabuk mangrove
+    st.seaFloodBarat = [
+        [mouth[0] + 0.0025, mouth[1] + 0.0045],
+        [mouth[0] + 0.0035, mouth[1] + 0.0110],
+        [mouth[0] + 0.0020, mouth[1] + 0.0185],
+        [mouth[0] - 0.0010, mouth[1] + 0.0250]
+    ];
+    st.seaFloodTimur = [
+        [mouth[0] + 0.0015, mouth[1] - 0.0045],
+        [mouth[0] - 0.0015, mouth[1] - 0.0110],
+        [mouth[0] - 0.0055, mouth[1] - 0.0180],
+        [mouth[0] - 0.0105, mouth[1] - 0.0250]
+    ];
+    // Saat SLACK: difusi radial pendek di sekitar gosong pasir muara
+    st.seaSlack = [
+        [mouth[0] + 0.0045, mouth[1] + 0.0015],
+        [mouth[0] + 0.0090, mouth[1] + 0.0035],
+        [mouth[0] + 0.0125, mouth[1] + 0.0010]
+    ];
+});
+
+updateSedimentStreamlines = function() {
+    if (!sedimentActiveParticles || sedimentActiveParticles.length === 0) return;
+    const isBarat = (typeof MONSOON !== 'undefined' ? MONSOON : 'barat') === 'barat';
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+
+    sedimentActiveParticles.forEach(p => {
+        const streamDef = SEDIMENT_STREAMLINES_DEF.find(s => s.name === p.streamName) || SEDIMENT_STREAMLINES_DEF[0];
+        let seaSegment;
+        if (tData.state === 'FLOOD') {
+            seaSegment = isBarat ? streamDef.seaFloodBarat : streamDef.seaFloodTimur;
+        } else if (tData.state === 'EBB') {
+            seaSegment = isBarat ? streamDef.seaBarat : streamDef.seaTimur;
+        } else {
+            seaSegment = streamDef.seaSlack;
+        }
+        p.path = streamDef.river.concat(seaSegment);
+        p.riverPointRatio = streamDef.river.length / p.path.length;
+    });
+};
+
+stepSedimentArrowAnimation = function(time) {
+    if (!SEDIMENT_ANIM_ACTIVE || !sedimentArrowLayerGroup || !map.hasLayer(sedimentArrowLayerGroup)) {
+        sedimentAnimFrameId = null;
+        return;
+    }
+
+    let dt = (time - sedimentLastTime) / 1000.0;
+    sedimentLastTime = time;
+    if (dt > 0.1) dt = 0.1;
+
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const isBarat = (typeof MONSOON !== 'undefined' ? MONSOON : 'barat') === 'barat';
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+
+    // Kecepatan streamline sungai-laut termodulasi oleh fase pasut:
+    // - Di hulu sungai: didominasi debit DAS (Qr)
+    // - Di muara & laut: dipercepat saat EBB (1.55x), diperlambat saat FLOOD (0.48x backwater), lambat saat SLACK (0.35x)
+    const baseRiverSpeed = 0.045 * (0.65 + 0.70 * (valDebit / 45));
+    const seaMultiplier = tData.state === 'EBB'
+        ? (1.35 + 0.55 * Math.abs(tData.normDeriv))
+        : (tData.state === 'FLOOD' ? 0.52 : 0.38);
+
+    sedimentActiveParticles.forEach(p => {
+        const inSea = p.progress >= p.riverPointRatio * 0.88;
+        const localSpeed = inSea ? (baseRiverSpeed * seaMultiplier) : baseRiverSpeed;
+
+        p.progress += dt * localSpeed;
+        if (p.progress >= 1.0) p.progress -= 1.0;
+
+        let cur = interpolateSedimentPath(p.path, p.progress);
+        p.marker.setLatLng([cur.lat, cur.lng]);
+
+        let rot = cur.heading - 90;
+        let color = '#f59e0b'; // Sungai hulu: oranye emas (fluvial sediment)
+
+        if (p.progress < p.riverPointRatio * 0.85) {
+            color = '#f59e0b';
+        } else if (p.progress < p.riverPointRatio * 1.05) {
+            // Zona transisi muara
+            color = tData.state === 'FLOOD' ? '#f43f5e' : '#fb923c'; // Merah muda saat tertahan ETM Flood
+        } else {
+            // Di laut lepas: warna mencerminkan rezim pasut aktif
+            if (tData.state === 'FLOOD') {
+                color = '#10b981'; // Hijau zamrud: terdorong kembali ke sabuk mangrove pantai
+            } else if (tData.state === 'EBB') {
+                color = isBarat ? '#60a5fa' : '#22d3ee'; // Biru/Sian: pancaran jet surut ke laut lepas
+            } else {
+                color = '#fde047'; // Kuning terang: deposisi slack water
+            }
+        }
+
+        let el = p.marker.getElement();
+        if (el) {
+            let arrowDiv = el.querySelector('.sediment-particle-arrow');
+            if (arrowDiv) {
+                arrowDiv.style.transform = `rotate(${rot.toFixed(1)}deg)`;
+                arrowDiv.style.setProperty('--p-color', color);
+            }
+        }
+    });
+
+    sedimentAnimFrameId = requestAnimationFrame(stepSedimentArrowAnimation);
+};
+
+// =========================================================================
+// PINTASAN INTERAKTIF LOMPAT KE FASE PASUT (FLOOD / HIGH SLACK / EBB / LOW SLACK)
+// =========================================================================
+function jumpToTidePhase(targetPhase) {
+    // Cari jam terbaik (0..24 dengan resolusi 0.25 jam) pada hari aktif (TIDE_DAY)
+    let bestHour = TIDE_HOUR;
+    let bestScore = -999999;
+
+    for (let h = 0; h <= 24; h += 0.25) {
+        const r = calcTideAtHourAndDay(h, TIDE_DAY);
+        let score = 0;
+        if (targetPhase === 'FLOOD') {
+            // Cari turunan positif maksimum (puncak kecepatan arus pasang naik)
+            score = r.deriv;
+        } else if (targetPhase === 'EBB') {
+            // Cari turunan negatif maksimum (puncak kecepatan arus surut turun)
+            score = -r.deriv;
+        } else if (targetPhase === 'HIGH_SLACK') {
+            // Cari puncak elevasi pasang tertinggi (deriv mendekati 0 dan elev maksimum)
+            score = r.elev - Math.abs(r.deriv) * 3.5;
+        } else if (targetPhase === 'LOW_SLACK') {
+            // Cari lembah surut terendah (deriv mendekati 0 dan elev minimum)
+            score = -r.elev - Math.abs(r.deriv) * 3.5;
+        }
+        if (score > bestScore) {
+            bestScore = score;
+            bestHour = h;
+        }
+    }
+
+    updateTideFromTime(bestHour, true);
+    updateSedimentStreamlines();
+
+    const phaseLabels = {
+        FLOOD: 'PASANG NAIK MAKSIMUM (FLOOD ↑) — Plume terkompresi ke pantai & ETM aktif',
+        HIGH_SLACK: 'PUNCAK PASANG AIR TENANG (HIGH SLACK ⟳) — Difusi radial & deposisi puncak',
+        EBB: 'SURUT TURUN MAKSIMUM (EBB JET ↓) — Pancaran plume menjulur jauh ke laut lepas',
+        LOW_SLACK: 'LEMBAH SURUT TERENDAH (LOW SLACK ⟳) — Eksposur gosong pasir muara'
+    };
+    toastNotifikasi(phaseLabels[targetPhase] || targetPhase, 'fa-water');
+}
+
+// =========================================================================
+// OVERRIDE updateTideFromTime & toggleTideAnim AGAR SINKRON PENUH 100%
+// =========================================================================
+var _v48UpdateTideFromTime = updateTideFromTime;
+updateTideFromTime = function(hour, syncMap) {
+    _v48UpdateTideFromTime(hour, syncMap);
+
+    // Perbarui label jam & hari secara akurat
+    const hInt = Math.floor(TIDE_HOUR);
+    const mInt = Math.round((TIDE_HOUR - hInt) * 60);
+    const timeOnlyStr = `Jam ${String(hInt).padStart(2, '0')}:${String(mInt).padStart(2, '0')} WIB`;
+    const fullStr = `Hari ke-${TIDE_DAY} · ${timeOnlyStr}`;
+
+    const lblHud = document.getElementById('tideHudTimeDisplay');
+    if (lblHud) lblHud.innerText = fullStr;
+    const lblHr = document.getElementById('lblTideHour');
+    if (lblHr) lblHr.innerText = timeOnlyStr;
+
+    // Sinkronkan jalur streamline sungai-laut & strip HUD
+    updateSedimentStreamlines();
+    const tData = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const cp = DSSPRO.calcTidePlumeCoupling(tData, valDebit, MONSOON);
+    updateHudCoupledPlumeStrip(cp);
+    updateHydrodynamicGridVectors(tData, cp);
+};
+
+// Perbaiki toggleTideAnim agar saat melewati jam 24:00 otomatis lanjut ke Hari berikutnya (1..30)
+toggleTideAnim = function() {
+    TIDE_ON = !TIDE_ON;
+    const btnMap = document.getElementById('btn-tide-anim');
+    const btnHud = document.getElementById('btn-tide-hud-play');
+    const playIcon = document.getElementById('tideHudPlayIcon');
+    const playText = document.getElementById('tideHudPlayText');
+
+    if (TIDE_ON) {
+        if (btnMap) {
+            btnMap.innerHTML = '<i class="fa-solid fa-pause"></i> STOP ANIMASI PASUT';
+            btnMap.style.borderColor = '#22d3ee';
+            btnMap.style.boxShadow = '0 0 14px rgba(34,211,238,0.55)';
+        }
+        if (playIcon) playIcon.className = "fa-solid fa-pause text-xs";
+        if (playText) playText.innerText = "JEDA PASUT";
+        if (btnHud) btnHud.className = "col-span-2 bg-gradient-to-r from-rose-700 to-amber-700 hover:from-rose-600 hover:to-amber-600 text-white font-bold py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer";
+
+        if (TIDE_T) clearInterval(TIDE_T);
+        TIDE_T = setInterval(() => {
+            const deltaH = 0.25 * TIDE_ANIM_SPEED;
+            let nextH = TIDE_HOUR + deltaH;
+            if (nextH >= 24.0) {
+                nextH = nextH % 24.0;
+                TIDE_DAY = (TIDE_DAY % 30) + 1;
+                const sDay = document.getElementById('slider-tide-day');
+                if (sDay) sDay.value = TIDE_DAY;
+                onTideDayInput(TIDE_DAY);
+            }
+            TIDE_HOUR = nextH;
+            updateTideFromTime(TIDE_HOUR, true);
+        }, 450);
+
+        toastNotifikasi('Animasi Sinkronisasi Pasut–Plume–Vektor Aktif (Flood / Ebb / Slack)', 'fa-water');
+    } else {
+        if (TIDE_T) {
+            clearInterval(TIDE_T);
+            TIDE_T = null;
+        }
+        if (btnMap) {
+            btnMap.innerHTML = '<i class="fa-solid fa-water"></i> ANIMASI PASUT';
+            btnMap.style.borderColor = '';
+            btnMap.style.boxShadow = '';
+        }
+        if (playIcon) playIcon.className = "fa-solid fa-play text-xs";
+        if (playText) playText.innerText = "ANIMASIKAN";
+        if (btnHud) btnHud.className = "col-span-2 bg-gradient-to-r from-cyan-700 to-emerald-700 hover:from-cyan-600 hover:to-emerald-600 text-white font-bold py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer";
+
+        toastNotifikasi(`Animasi pasut dijeda pada Hari ke-${TIDE_DAY} Jam ${TIDE_HOUR.toFixed(2)} WIB`, 'fa-pause');
+    }
+};
+
+// =========================================================================
+// STUDIO ANALISIS PROFESIONAL TAB 6: SINKRONISASI PASUT–PLUME & PROFIL ROUSE 2D
+// =========================================================================
+function proRunPlumeSync() {
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    const tDataNow = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+    const cpNow = DSSPRO.calcTidePlumeCoupling(tDataNow, valDebit, MONSOON);
+
+    // 1. Render 6 Kartu Metrik Utama
+    const mGrid = document.getElementById('proPlumeMetricsGrid');
+    if (mGrid) {
+        mGrid.innerHTML = `
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Fase &amp; Elevasi</span>
+                <b class="text-cyan-300 text-xs sm:text-sm font-tech">${cpNow.state} (${tDataNow.elev>=0?'+':''}${tDataNow.elev.toFixed(2)}m)</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">Hari ke-${TIDE_DAY} · ${TIDE_HOUR.toFixed(1)}j</span>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Jangkauan Plume</span>
+                <b class="text-amber-300 text-xs sm:text-sm font-tech">${cpNow.offshoreReachKm.toFixed(2)} km</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">Faktor Lintas: ${cpNow.fCross.toFixed(2)}×</span>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Tegangan Geser τ<sub>b</sub></span>
+                <b class="${cpNow.tauB>cpNow.tauCr?'text-rose-400':'text-emerald-400'} text-xs sm:text-sm font-tech">${cpNow.tauB.toFixed(3)} N/m²</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">${cpNow.bedState}</span>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Bilangan Rouse (P)</span>
+                <b class="text-sky-300 text-xs sm:text-sm font-tech">${cpNow.rouseP.toFixed(2)}</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">${cpNow.rouseP < 0.8 ? 'Wash/Suspensi Dominan' : 'Campuran/Bedload'}</span>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Intrusi Baji Salin L<sub>s</sub></span>
+                <b class="text-purple-300 text-xs sm:text-sm font-tech">${cpNow.saltWedgeKm.toFixed(2)} km</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">Ri<sub>E</sub> = ${cpNow.RiE.toFixed(1)}</span>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-lg p-2 text-center">
+                <span class="text-[9px] text-slate-400 font-mono block uppercase">Fluks Deposisi</span>
+                <b class="text-yellow-300 text-xs sm:text-sm font-tech">${cpNow.settlingFlux_gm2h.toFixed(0)} g/m²/j</b>
+                <span class="text-[8.5px] text-slate-500 block font-mono">SSC Inti: ${Math.round(cpNow.coreSSC)} mg/L</span>
+            </div>
+        `;
+    }
+
+    // 2. Grafik 1: Siklus 24 Jam Jangkauan Plume (km) vs Fluks Deposisi (g/m2/jam)
+    const hours = [], reachArr = [], depArr = [], elevArr = [];
+    for (let h = 0; h <= 24; h += 1) {
+        const td = calcTideAtHourAndDay(h, TIDE_DAY);
+        const c = DSSPRO.calcTidePlumeCoupling(td, valDebit, MONSOON);
+        hours.push(`${String(h).padStart(2,'0')}:00`);
+        reachArr.push(+c.offshoreReachKm.toFixed(2));
+        depArr.push(Math.round(c.settlingFlux_gm2h / 10)); // skala 10 g/m2/jam
+        elevArr.push(+td.elev.toFixed(2));
+    }
+
+    const ctx1 = document.getElementById('proPlumeCycleChart');
+    if (ctx1) {
+        if (DSSPRO_charts.plumeCycle) { try { DSSPRO_charts.plumeCycle.destroy(); } catch(e){} }
+        DSSPRO_charts.plumeCycle = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: hours,
+                datasets: [
+                    { label: 'Jangkauan Plume Lintas-Pantai (km)', data: reachArr, borderColor: '#22d3ee', backgroundColor: 'rgba(34,211,238,0.12)', fill: true, tension: 0.35, borderWidth: 2.5 },
+                    { label: 'Elevasi Pasut η (m MSL)', data: elevArr, borderColor: '#10b981', borderDash: [4, 4], tension: 0.35, borderWidth: 1.8 },
+                    { label: 'Fluks Deposisi (×10 g/m²/jam)', data: depArr, borderColor: '#f59e0b', tension: 0.35, borderWidth: 2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#f8fafc', font: { size: 9.5 } } } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', font: { size: 8.5 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#94a3b8', font: { size: 8.5 } }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'km / m MSL / (×10 g/m²/j)', color: '#38bdf8', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+
+    // 3. Grafik 2: Profil Konsentrasi Vertikal Rouse C(z/h) pada Flood, Ebb, dan Slack Water
+    // Persamaan Rouse: C(z) / Ca = [ ((h - z)/z) * (a / (h - a)) ]^P
+    const zLevels = [0.05, 0.10, 0.20, 0.30, 0.40, 0.50, 0.60, 0.70, 0.80, 0.90, 0.98];
+    const aRef = 0.05;
+    const calcRouseCurve = (Ca, P) => zLevels.map(z => {
+        const ratio = ((1 - z) / z) * (aRef / (1 - aRef));
+        return Math.round(Ca * Math.pow(Math.max(0, ratio), Math.min(2.2, P)));
+    });
+
+    const curveFlood = calcRouseCurve(cpNow.coreSSC * 1.25, 0.42);
+    const curveEbb   = calcRouseCurve(cpNow.coreSSC * 1.10, 0.32);
+    const curveSlack = calcRouseCurve(cpNow.coreSSC * 0.95, 1.15); // Saat slack P besar -> mengendap di dekat dasar
+
+    const ctx2 = document.getElementById('proRouseChart');
+    if (ctx2) {
+        if (DSSPRO_charts.rouse) { try { DSSPRO_charts.rouse.destroy(); } catch(e){} }
+        DSSPRO_charts.rouse = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: zLevels.map(z => `z/h=${z.toFixed(2)}`),
+                datasets: [
+                    { label: 'FLOOD (Retensi ETM & Flokulasi)', data: curveFlood, borderColor: '#10b981', tension: 0.3, borderWidth: 2.2 },
+                    { label: 'EBB (Pancaran Jet Turbulen)', data: curveEbb, borderColor: '#38bdf8', tension: 0.3, borderWidth: 2.2 },
+                    { label: 'SLACK WATER (Settling ke Dasar)', data: curveSlack, borderColor: '#f59e0b', borderDash: [5, 3], tension: 0.3, borderWidth: 2.2 }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: '#f8fafc', font: { size: 9.5 } } } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', font: { size: 8.5 } }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Kedalaman Relatif z/h (0.05 = Dasar Laut → 0.98 = Permukaan)', color: '#94a3b8', font: { size: 8.5 } } },
+                    y: { ticks: { color: '#f59e0b', font: { size: 8.5 } }, grid: { color: 'rgba(255,255,255,0.05)' }, title: { display: true, text: 'Konsentrasi Sedimen Tersuspensi SSC (mg/L)', color: '#f59e0b', font: { size: 9 } } }
+                }
+            }
+        });
+    }
+
+    // 4. Tabel Komparasi 4 Fase Pasut
+    const tblHost = document.getElementById('proPlumePhaseTable');
+    if (tblHost) {
+        const sampleHours = [
+            { name: 'PASANG NAIK (FLOOD ↑)', state: 'FLOOD', h: 4.0 },
+            { name: 'PUNCAK PASANG (HIGH SLACK ⟳)', state: 'HIGH_SLACK', h: 9.5 },
+            { name: 'SURUT TURUN (EBB JET ↓)', state: 'EBB', h: 15.0 },
+            { name: 'LEMBAH SURUT (LOW SLACK ⟳)', state: 'LOW_SLACK', h: 21.5 }
+        ];
+        // Cari jam riil tiap fase pada hari ini
+        ['FLOOD', 'HIGH_SLACK', 'EBB', 'LOW_SLACK'].forEach((st, idx) => {
+            let bestH = sampleHours[idx].h, bestSc = -9999;
+            for (let h = 0; h <= 24; h += 0.5) {
+                const r = calcTideAtHourAndDay(h, TIDE_DAY);
+                const sc = st === 'FLOOD' ? r.deriv : (st === 'EBB' ? -r.deriv : (st === 'HIGH_SLACK' ? r.elev - Math.abs(r.deriv)*3 : -r.elev - Math.abs(r.deriv)*3));
+                if (sc > bestSc) { bestSc = sc; bestH = h; }
+            }
+            sampleHours[idx].h = bestH;
+        });
+
+        const rows = sampleHours.map(sh => {
+            const td = calcTideAtHourAndDay(sh.h, TIDE_DAY);
+            const c  = DSSPRO.calcTidePlumeCoupling(td, valDebit, MONSOON);
+            return `
+                <tr class="border-b border-slate-800/80 hover:bg-slate-800/50">
+                    <td class="py-1.5 px-2 font-bold ${sh.state==='FLOOD'?'text-emerald-400':(sh.state==='EBB'?'text-amber-400':'text-cyan-300')}">${sh.name}</td>
+                    <td class="py-1.5 px-2 text-center">${String(Math.floor(sh.h)).padStart(2,'0')}:${String(Math.round((sh.h%1)*60)).padStart(2,'0')}</td>
+                    <td class="py-1.5 px-2 text-right">${td.elev>=0?'+':''}${td.elev.toFixed(2)} m</td>
+                    <td class="py-1.5 px-2 text-right">${td.uTide.toFixed(2)} m/s</td>
+                    <td class="py-1.5 px-2 text-right font-bold text-cyan-300">${c.offshoreReachKm.toFixed(2)} km</td>
+                    <td class="py-1.5 px-2 text-right text-orange-300">${Math.round(c.coreSSC)} mg/L</td>
+                    <td class="py-1.5 px-2 text-right">${c.tauB.toFixed(3)} N/m²</td>
+                    <td class="py-1.5 px-2 text-right text-yellow-300 font-bold">${c.settlingFlux_gm2h.toFixed(0)} g/m²/j</td>
+                    <td class="py-1.5 px-2 text-left text-[9.5px] text-slate-300">${c.bedState}</td>
+                </tr>`;
+        }).join('');
+
+        tblHost.innerHTML = `
+            <table class="w-full text-[10.5px] font-mono border-collapse bg-slate-950/70 rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-slate-950 text-slate-400 border-b border-slate-700 text-[9.5px]">
+                        <th class="py-1.5 px-2 text-left">Fase Pasut</th>
+                        <th class="py-1.5 px-2 text-center">Jam (H-${TIDE_DAY})</th>
+                        <th class="py-1.5 px-2 text-right">Elevasi η</th>
+                        <th class="py-1.5 px-2 text-right">Arus Pasut u</th>
+                        <th class="py-1.5 px-2 text-right">Jangkauan Plume</th>
+                        <th class="py-1.5 px-2 text-right">SSC Inti</th>
+                        <th class="py-1.5 px-2 text-right">Geser Dasar τ<sub>b</sub></th>
+                        <th class="py-1.5 px-2 text-right">Fluks Deposisi</th>
+                        <th class="py-1.5 px-2 text-left">Proses Morfodinamika Dominan</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+}
+
+// Perluas proSwitchTab agar mendukung tab 'plume'
+var _origProSwitchTab = proSwitchTab;
+proSwitchTab = function(tab) {
+    ['cerc','budget','ahp','mc','cba','plume'].forEach(k => {
+        const p = document.getElementById('proPane-' + k);
+        if (p) p.classList.add('hidden');
+        const b = document.getElementById('proTabBtn-' + k);
+        if (b) b.className = "px-2.5 py-1 rounded bg-slate-800 text-slate-300 hover:text-white transition-all cursor-pointer text-[11px] font-bold";
+    });
+    const targetPane = document.getElementById('proPane-' + tab);
+    if (targetPane) targetPane.classList.remove('hidden');
+    const targetBtn = document.getElementById('proTabBtn-' + tab);
+    if (targetBtn) targetBtn.className = "px-2.5 py-1 rounded bg-emerald-700 text-white font-bold transition-all cursor-pointer text-[11px]";
+
+    if (tab === 'plume') {
+        setTimeout(() => { proResize(); proRunPlumeSync(); }, 50);
+    } else {
+        _origProSwitchTab(tab);
+    }
+};
+
+// Ekspor CSV Telemetri Kopel Pasut-Plume 24 Jam
+function exportTidePlumeCSV() {
+    const valDebit = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+    let csv = "Hari,Jam_WIB,Elevasi_MSL_m,Fase_Pasut,Kecepatan_Pasut_ms,Kecepatan_Resultan_ms,Heading_deg,Jangkauan_Plume_km,SSC_Inti_mgL,Tegangan_Geser_Pa,Bilangan_Rouse,Fluks_Deposisi_gm2h,Intrusi_Salinitas_km,Status_Dasar\n";
+    for (let h = 0; h <= 24; h += 0.5) {
+        const td = calcTideAtHourAndDay(h, TIDE_DAY);
+        const cp = DSSPRO.calcTidePlumeCoupling(td, valDebit, MONSOON);
+        const hInt = Math.floor(h), mInt = Math.round((h - hInt) * 60);
+        const tStr = `${String(hInt).padStart(2,'0')}:${String(mInt).padStart(2,'0')}`;
+        csv += `${TIDE_DAY},${tStr},${td.elev.toFixed(3)},${cp.state},${td.uTide.toFixed(3)},${td.resSpeed.toFixed(3)},${td.heading},${cp.offshoreReachKm.toFixed(3)},${Math.round(cp.coreSSC)},${cp.tauB.toFixed(4)},${cp.rouseP.toFixed(3)},${cp.settlingFlux_gm2h.toFixed(1)},${cp.saltWedgeKm.toFixed(2)},"${cp.bedState}"\n`;
+    }
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Telemetri_Pasut_Plume_Demak_Hari_${TIDE_DAY}_${MONSOON}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toastNotifikasi(`Data Telemetri Pasut–Plume 24 Jam (Hari ke-${TIDE_DAY}) diekspor ke CSV`, 'fa-file-csv');
+}
+
+// Modal Katalog Google Drive
+function openGDriveCatalogModal() {
+    const m = document.getElementById('gdriveCatalogModal');
+    if (m) m.classList.remove('hidden');
+}
+function closeGDriveCatalogModal() {
+    const m = document.getElementById('gdriveCatalogModal');
+    if (m) m.classList.add('hidden');
+}
+
+// Perluas toggleGisLayer untuk 'hydrogrid'
+var _v48ToggleGisLayer = toggleGisLayer;
+toggleGisLayer = function(layerKey) {
+    if (layerKey === 'hydrogrid') {
+        const chk = document.getElementById('chk-hydrogrid');
+        const btn = document.getElementById('layerBtn-hydrogrid');
+        if (hydroGridLayerGroup && map.hasLayer(hydroGridLayerGroup)) {
+            map.removeLayer(hydroGridLayerGroup);
+            if (chk) chk.innerText = '✗';
+            if (btn) btn.classList.add('opacity-50');
+            toastNotifikasi('Medan Vektor Arus Laut 2D & Plume Multi-Muara disembunyikan', 'fa-eye-slash');
+        } else {
+            if (!hydroGridLayerGroup) initMarinePlumeVectorEngine();
+            map.addLayer(hydroGridLayerGroup);
+            if (chk) chk.innerText = '✓';
+            if (btn) btn.classList.remove('opacity-50');
+            toastNotifikasi('Medan Vektor Arus Laut 2D & Plume Multi-Muara aktif', 'fa-compass-drafting');
+        }
+        const vd = (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45;
+        renderBilateralPlume(vd, TIDE_PHASE);
+        return;
+    }
+    _v48ToggleGisLayer(layerKey);
+};
+
+// Pastikan saat aplikasi dibuka (window.onload), semua layer sungai, panah sedimen, vektor laut 60fps, dan plume langsung aktif!
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        renderRiverSpatialLayer();
+        startSedimentArrowAnimation();
+        initMarinePlumeVectorEngine();
+        updateTideFromTime(TIDE_HOUR, true);
+    }, 700);
+});
+
+
+
+// =========================================================================
+// [v5.0.1] RISALAH TEKNIS, SARAN TEKNIS & KESIMPULAN — STUDIO ANALISIS PROFESIONAL
+// Narasi dihitung LIVE dari hasil tiap analisis (bukan teks tetap), sehingga
+// ikut berubah saat parameter / slider / skenario diubah.
+// =========================================================================
+(function () {
+  'use strict';
+  var f1 = function (v) { return (isFinite(v) ? v : 0).toFixed(1); };
+  var f2 = function (v) { return (isFinite(v) ? v : 0).toFixed(2); };
+  var f3 = function (v) { return (isFinite(v) ? v : 0).toFixed(3); };
+  var idn = function (v) { return Math.round(v).toLocaleString('id-ID'); };
+  var gv = function (id, d) { var e = document.getElementById(id); var v = e ? parseFloat(e.value) : NaN; return isFinite(v) ? v : d; };
+
+  var REF = {
+    cerc: 'USACE Coastal Engineering Manual (CEM) 2002, Bab III-2; CERC (1984) Shore Protection Manual; Komar & Inman (1970)',
+    budget: 'Bruun (1962); Dean & Dalrymple (2002); Hanson & Kraus (1989) GENESIS; Marfai et al. (2008) Pesisir Demak',
+    ahp: 'Saaty (1980) AHP; Hwang & Yoon (1981) TOPSIS; Permen KP No. 33/2023 (Pengelolaan Pesisir)',
+    mc: 'Saltelli et al. (2008) Global Sensitivity Analysis; Vose (2008) Risk Analysis; Morgan & Henrion (1990)',
+    cba: 'Boardman et al. (2018) Cost-Benefit Analysis; Bappenas (2019) Pedoman Analisis Biaya-Manfaat; Barbier et al. (2011)',
+    plume: 'Winterwerp & van Kesteren (2004); Rouse (1937); Krone (1962); Partheniades (1965); van Rijn (1993)'
+  };
+
+  // Pembangun kartu panel risalah (3 blok: Risalah / Saran / Kesimpulan) + rujukan
+  function panel(judul, warna, risalah, saran, kesimpulan, ref) {
+    var li = function (a) { return a.map(function (t) { return '<li class="mb-1">' + t + '</li>'; }).join(''); };
+    return '' +
+      '<div class="mt-3 rounded-xl border-2 border-' + warna + '-500/50 bg-slate-950/90 overflow-hidden">' +
+        '<div class="px-3 py-2 bg-' + warna + '-950/60 border-b border-' + warna + '-500/40 flex items-center gap-2">' +
+          '<i class="fa-solid fa-file-lines text-' + warna + '-400"></i>' +
+          '<span class="text-xs sm:text-sm font-black font-tech uppercase tracking-wide text-' + warna + '-300">' + judul + '</span>' +
+        '</div>' +
+        '<div class="p-3 grid lg:grid-cols-2 gap-3 text-[11.5px] sm:text-xs leading-relaxed text-slate-300 font-sans">' +
+          '<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">' +
+            '<div class="font-bold text-cyan-300 mb-1.5 font-mono"><i class="fa-solid fa-microscope mr-1"></i>RISALAH TEKNIS (PROSES ANALISIS &amp; GRAFIK)</div>' +
+            '<ul class="list-disc pl-4 marker:text-cyan-500">' + li(risalah) + '</ul>' +
+          '</div>' +
+          '<div class="rounded-lg border border-slate-800 bg-slate-900/70 p-3">' +
+            '<div class="font-bold text-amber-300 mb-1.5 font-mono"><i class="fa-solid fa-screwdriver-wrench mr-1"></i>SARAN TEKNIS</div>' +
+            '<ul class="list-disc pl-4 marker:text-amber-500">' + li(saran) + '</ul>' +
+          '</div>' +
+        '</div>' +
+        '<div class="mx-3 mb-3 rounded-lg border border-emerald-500/40 bg-emerald-950/30 p-3 text-[11.5px] sm:text-xs leading-relaxed text-emerald-100">' +
+          '<div class="font-bold text-emerald-300 mb-1 font-mono"><i class="fa-solid fa-flag-checkered mr-1"></i>KESIMPULAN</div>' + kesimpulan +
+        '</div>' +
+        '<div class="px-3 pb-2.5 text-[10px] text-slate-500 font-mono"><i class="fa-solid fa-book mr-1"></i>Rujukan: ' + ref + '</div>' +
+      '</div>';
+  }
+
+  function host(paneId, hostId) {
+    var h = document.getElementById(hostId);
+    if (h) return h;
+    var p = document.getElementById(paneId);
+    if (!p) return null;
+    h = document.createElement('div'); h.id = hostId; p.appendChild(h);
+    return h;
+  }
+  function mons() { return (typeof DSS_MONSOON !== 'undefined' && typeof MONSOON !== 'undefined' && DSS_MONSOON[MONSOON]) ? DSS_MONSOON[MONSOON] : null; }
+
+  // ---------------- 1. TRANSPORT LONGSHORE (CERC) ----------------
+  window.proRisalahCerc = function () {
+    try {
+      var Hs = gv('proInHs', 0.6), Tp = gv('proInTp', 4.5), a0 = gv('proInA0', 15), K = gv('proInK', 0.77);
+      var r = DSSPRO.cerc(Hs, Tp, a0, K);
+      var Ql = r.Ql_yr / 1000;
+      // titik maksimum kurva sudut (grafik): cari sudut optimum
+      var best = { a: 0, q: -1 };
+      for (var a = 0; a <= 45; a += 2.5) { var rr = DSSPRO.cerc(Hs, Tp, a, K); if (rr.Ql_yr > best.q) best = { a: a, q: rr.Ql_yr }; }
+      var arah = a0 > 0 ? 'ke arah timur (searah drift dominan musim ini)' : 'netral';
+      var kelas = Ql > 6000 ? 'SANGAT TINGGI' : Ql > 3000 ? 'TINGGI' : Ql > 1200 ? 'SEDANG' : 'RENDAH';
+      var tone = Ql > 3000 ? 'red' : Ql > 1200 ? 'amber' : 'emerald';
+      var risalah = [
+        'Gelombang laut dalam Hs = <b>' + f2(Hs) + ' m</b>, Tp = <b>' + f1(Tp) + ' s</b> merambat ke pantai dengan panjang gelombang dalam L<sub>0</sub> = <b>' + f1(r.L0) + ' m</b>. Refraksi Snell mengubah sudut datang dari α<sub>0</sub> = <b>' + f1(a0) + '°</b> menjadi α<sub>b</sub> = <b>' + f1(r.ab) + '°</b> saat pecah.',
+        'Gelombang pecah pada kedalaman d<sub>b</sub> = <b>' + f2(r.db) + ' m</b> dengan tinggi H<sub>b</sub> = <b>' + f2(r.Hb) + ' m</b> (kriteria Hb/db ≈ 0,78). Energi pecah inilah yang menggerakkan sedimen di zona surf.',
+        'Rumus CERC menghasilkan transport sedimen sejajar pantai Q<sub>l</sub> = <b>' + idn(Ql) + ' ribu m³/tahun</b> (' + f3(r.Ql_s) + ' m³/s) dengan K = ' + K + '. Kategori: <b class="text-' + tone + '-400">' + kelas + '</b>.',
+        'Grafik <i>Ql vs sudut datang</i> berbentuk lonceng: transport nol saat α = 0° (gelombang tegak lurus pantai) dan <b>maksimum di sekitar α ≈ ' + best.a + '°</b> (sin 2α<sub>b</sub> terbesar ≈ 45° di zona pecah). Posisi sudut saat ini (' + f1(a0) + '°) berada di ' + (a0 < best.a - 5 ? 'sisi kiri puncak: kenaikan sudut akan menaikkan transport secara tajam.' : a0 > best.a + 5 ? 'sisi kanan puncak: transport sudah menurun terhadap sudut.' : 'dekat puncak kurva: kondisi paling sensitif.')
+      ];
+      var saran = [
+        'Gunakan K = 0,39 (USACE CEM, basis energi rms) bila ingin hasil konservatif; K = 0,77 (SPM, basis Hs) cenderung menghasilkan angka lebih besar sehingga cocok untuk <i>desain batas atas</i>.',
+        'Kalibrasi Hs, Tp dan α<sub>0</sub> dengan data ADCP/wave-rider Sayung minimal satu siklus muson penuh (Barat & Timur); sudut datang adalah parameter paling sensitif terhadap Q<sub>l</sub>.',
+        'Bila Q<sub>l</sub> tinggi: rancang <b>breakwater/groin penjerat terintegrasi</b> dan <i>sand engine</i> / <i>beach nourishment</i> bertahap; hindari struktur kaku panjang yang memindahkan erosi ke hilir drift.',
+        'Verifikasi dengan citra satelit multi-temporal (DSAS) dan survei batimetri berkala 6 bulan di sel pantai Sayung-Bedono.'
+      ];
+      var kes = 'Transport longshore <b>' + idn(Ql) + ' ribu m³/th</b> tergolong <b>' + kelas + '</b> untuk kondisi gelombang yang dianalisis (' + arah + '). Hasil ini menjadi masukan utama untuk <i>Neraca Sedimen</i> (komponen Q<sub>l,in/out</sub>) dan menentukan seberapa besar kebutuhan penjerat sedimen serta pasokan nourishment.';
+      var h = host('proPane-cerc', 'proRisalahCerc'); if (h) h.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — Transport Longshore (CERC)', 'emerald', risalah, saran, kes, REF.cerc);
+    } catch (e) { console.warn('risalah cerc', e); }
+  };
+
+  // ---------------- 2. NERACA SEDIMEN, BRUUN, ONE-LINE ----------------
+  window.proRisalahBudget = function () {
+    try {
+      var o = { qriver: gv('proNbRiv', 13500), qlin: gv('proNbQlin', 9000), qtrap: gv('proNbTrap', 5200), qlout: gv('proNbQlout', 15500), dredge: gv('proNbDredge', 2700), bruun: gv('proNbBruun', 7260), er: gv('proNbEr', 8600) };
+      var B = DSSPRO.neraca(o);
+      var masuk = o.qriver + o.qlin + o.qtrap, keluar = o.qlout + o.dredge + o.bruun + o.er;
+      var dominan = B.komponen.filter(function (k) { return k.s < 0; }).sort(function (a, b) { return b.v - a.v; })[0];
+      var R = DSSPRO.bruun(gv('proBrS', 5) / 1000, gv('proBrL', 800), gv('proBrH', 8), gv('proBrB', 2));
+      var abrasi = B.net < 0;
+      var risalah = [
+        'Neraca sedimen sel pantai menjumlahkan pasokan (sungai <b>' + idn(o.qriver) + '</b> + longshore masuk <b>' + idn(o.qlin) + '</b> + trapping mangrove <b>' + idn(o.qtrap) + '</b> = <b>' + idn(masuk) + ' m³/th</b>) dikurangi kehilangan (longshore keluar <b>' + idn(o.qlout) + '</b> + pengerukan <b>' + idn(o.dredge) + '</b> + defisit Bruun <b>' + idn(o.bruun) + '</b> + erosi gelombang <b>' + idn(o.er) + '</b> = <b>' + idn(keluar) + ' m³/th</b>).',
+        'Neraca bersih = <b class="' + (abrasi ? 'text-red-400' : 'text-emerald-400') + '">' + (B.net >= 0 ? '+' : '') + idn(B.net) + ' m³/th</b> sehingga garis pantai bergeser <b class="' + (abrasi ? 'text-red-400' : 'text-emerald-400') + '">' + f2(B.dY) + ' m/th</b> (dY = Net / (D<sub>c</sub>·L), D<sub>c</sub> = 13,5 m). Status: <b>' + B.status + '</b>.',
+        'Pada grafik batang neraca, batang hijau = sumber sedimen, batang merah = kehilangan. Komponen kehilangan terbesar adalah <b>' + (dominan ? dominan.n : '-') + '</b> (' + idn(dominan ? dominan.v : 0) + ' m³/th, ' + f1(dominan ? 100 * dominan.v / keluar : 0) + '% dari seluruh kehilangan).',
+        'Aturan Bruun memperkirakan retret garis pantai akibat kenaikan muka laut + subsiden sebesar <b>R = ' + f2(R.R) + ' m</b> (volume ' + idn(R.vol) + ' m³/m). Model <i>one-line</i> memproyeksikan evolusi garis pantai dan efek groin: area di belakang groin ber-akresi, hilir drift ber-erosi.'
+      ];
+      var saran = [
+        abrasi ? 'Defisit harus ditutup: <b>naikkan trapping</b> lewat restorasi mangrove + <i>permeable dam</i> (hybrid engineering) hingga komponen masuk ≥ komponen keluar.' : 'Neraca surplus: pertahankan pasokan sungai dan mangrove, hindari pengerukan alur yang menghilangkan sedimen dari sel pantai.',
+        'Kurangi komponen <b>' + (dominan ? dominan.n : '-') + '</b> sebagai prioritas pertama: mitigasi terbesar memberi dampak neraca terbesar per rupiah.',
+        'Pengerukan alur: lakukan <i>sediment bypassing</i> (material hasil keruk dikembalikan ke pantai defisit) sesuai batas efisiensi Permen KP 33/2023.',
+        'Kendalikan subsiden (pembatasan air tanah, <i>managed aquifer recharge</i>) karena komponen Bruun-SLR bertambah seiring penurunan tanah Demak.',
+        'Pantau dengan DSAS 6 bulanan dan pasang <i>sediment trap</i>/profil pantai tetap di 5 stasiun.'
+      ];
+      var kes = 'Sel pantai berstatus <b>' + B.status + '</b> dengan laju <b>' + f2(B.dY) + ' m/th</b>. ' + (abrasi ? 'Tanpa intervensi, retret kumulatif akan terus berlanjut dan diperparah Bruun R = ' + f2(R.R) + ' m. Strategi paling efektif: perkuat <i>trapping</i> (mangrove + permeable dam) dan kurangi kehilangan dominan.' : 'Kondisi sedimen sehat; fokus pada pemeliharaan.') + ' Hasil ini konsisten dengan skenario Hybrid pada analisis AHP-TOPSIS dan CBA.';
+      var h = host('proPane-budget', 'proRisalahBudget'); if (h) h.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — Neraca Sedimen, Bruun &amp; One-Line', abrasi ? 'amber' : 'emerald', risalah, saran, kes, REF.budget);
+    } catch (e) { console.warn('risalah budget', e); }
+  };
+
+  // ---------------- 3. AHP - TOPSIS ----------------
+  window.proRisalahAhp = function () {
+    try {
+      var A = window.DSSPRO_LAST_AHP, T = window.DSSPRO_LAST_TOPSIS;
+      if (!A || !T) return;
+      var idx = A.w.map(function (v, i) { return { n: A.kriteria[i], w: v }; }).sort(function (a, b) { return b.w - a.w; });
+      var juara = T[0], runner = T[1], terburuk = T[T.length - 1];
+      var konsisten = A.CR < 0.10;
+      var risalah = [
+        'Lima kriteria dibandingkan berpasangan (skala Saaty 1–9). Bobot hasil rata-rata geometris: ' + idx.map(function (k) { return '<b>' + k.n + ' ' + f1(k.w * 100) + '%</b>'; }).join(', ') + '.',
+        'Rasio konsistensi CR = <b class="' + (konsisten ? 'text-emerald-400' : 'text-red-400') + '">' + f3(A.CR) + '</b> (' + (konsisten ? 'konsisten, di bawah ambang 0,10 sehingga bobot dapat dipakai' : 'MELEBIHI 0,10, penilaian perlu direvisi') + '). Grafik batang bobot memperlihatkan prioritas relatif tiap kriteria; <b>' + idx[0].n + '</b> adalah kriteria paling menentukan.',
+        'TOPSIS menilai 4 skenario dengan jarak ke solusi ideal positif/negatif. Peringkat: ' + T.map(function (r) { return '<b>#' + r.rank + ' ' + r.nama + '</b> (C* = ' + f3(r.c) + ')'; }).join(' → ') + '.',
+        'Pada grafik C*, batang hijau = skenario terbaik. Selisih juara vs peringkat 2 = <b>' + f3(juara.c - runner.c) + '</b> (' + (juara.c - runner.c > 0.08 ? 'keunggulan jelas' : 'keunggulan tipis, sensitif terhadap bobot') + ').'
+      ];
+      var saran = [
+        'Lakukan <b>uji sensitivitas bobot</b> (ubah 2–3 perbandingan utama) untuk memastikan peringkat ' + juara.nama + ' stabil sebelum dijadikan rekomendasi kebijakan.',
+        konsisten ? 'Pertahankan matriks saat ini; dokumentasikan alasan setiap penilaian bersama pemangku kepentingan (BBWS, DKP, masyarakat tambak).' : 'Revisi pasangan yang paling tidak konsisten (cek nilai ekstrem 7–9) hingga CR < 0,10.',
+        'Libatkan lebih dari satu kelompok pakar (<i>group AHP</i>, agregasi geometris) agar bobot tidak bias satu pihak.',
+        'Skenario terburuk (' + terburuk.nama + ', C* = ' + f3(terburuk.c) + ') sebaiknya tidak dilanjutkan kecuali kendala non-teknis mengharuskan.'
+      ];
+      var kes = 'Berdasarkan bobot kriteria dan skor TOPSIS, skenario terbaik adalah <b>' + juara.nama + '</b> (C* = <b>' + f3(juara.c) + '</b>), ' + (juara.c - runner.c > 0.08 ? 'unggul jelas atas ' : 'unggul tipis atas ') + runner.nama + '. Pilihan ini sejalan dengan hasil Monte Carlo (ketahanan) dan CBA (kelayakan ekonomi).';
+      var h = host('proPane-ahp', 'proRisalahAhp'); if (h) h.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — AHP &amp; TOPSIS', 'purple', risalah, saran, kes, REF.ahp);
+    } catch (e) { console.warn('risalah ahp', e); }
+  };
+
+  // ---------------- 4. MONTE CARLO ----------------
+  window.proRisalahMc = function () {
+    try {
+      var M = window.DSSPRO_LAST_MC; if (!M) return;
+      var jit = gv('proMcJ', 20), n = M.samp.length;
+      var tor = null; try { tor = DSSPRO.tornado({ debit: gv('slider-debit', 45), mangrove: gv('slider-mangrove', 75), keruk: gv('slider-keruk', 30), policy: gv('slider-policy', 85) }); } catch (e) {}
+      var topVar = '', topSw = 0;
+      if (tor && tor.length) { topVar = tor[0].par; topSw = tor[0].swing; }
+var tone = M.fail === 0 ? 'emerald' : M.fail < 0.15 ? 'amber' : 'red';
+      var risalah = [
+        'Simulasi Monte Carlo menjalankan <b>' + idn(n) + ' iterasi</b> model System Dynamics dengan ketidakpastian input ±<b>' + f1(jit) + '%</b> pada debit sungai, kerapatan mangrove, pengerukan, dan efektivitas kebijakan.',
+        'Sebaran IKS: rata-rata <b>' + f3(M.mean) + '</b>, simpangan baku <b>' + f3(M.sd) + '</b>; persentil P10 = <b>' + f3(M.p10) + '</b>, P50 = <b>' + f3(M.p50) + '</b>, P90 = <b>' + f3(M.p90) + '</b>. Histogram memperlihatkan di mana massa hasil terkonsentrasi; makin sempit, makin tahan terhadap ketidakpastian.',
+        'Probabilitas IKS < 0,45 (ambang kritis) = <b class="text-' + tone + '-400">' + f1(M.fail * 100) + '%</b>. Garis ambang pada histogram menandai batas gagal tersebut.',
+        'Diagram tornado (sensitivitas ±15%) mengurutkan variabel menurut pengaruh terhadap IKS' + (topVar ? '; variabel paling berpengaruh: <b>' + topVar + '</b> (ayunan IKS ' + f3(topSw) + ')' : '') + '. Batang terpanjang = parameter yang harus paling dikendalikan.'
+      ];
+      var saran = [
+        M.fail === 0 ? 'Skenario robust: lanjutkan, namun tetap pantau parameter berpengaruh tinggi pada tornado.' : 'Risiko di atas nol: perkuat parameter paling sensitif (mangrove &amp; kebijakan) untuk menggeser P10 ke atas ambang 0,45.',
+        'Tambah jumlah iterasi ke 5.000 untuk stabilitas persentil, dan uji jitter 10%, 20%, 30% untuk melihat titik patah ketahanan.',
+        'Prioritaskan <b>monitoring variabel dominan</b> (debit sungai, kerapatan mangrove) dengan sensor/AWLR agar ketidakpastian input dapat dikurangi.',
+        'Siapkan <b>trigger adaptif</b>: bila IKS terukur mendekati P10, aktifkan intervensi cadangan (nourishment, penambahan permeable dam).'
+      ];
+      var kes = 'Pada ketidakpastian ±' + f1(jit) + '%, IKS bernilai median <b>' + f3(M.p50) + '</b> dengan peluang gagal <b>' + f1(M.fail * 100) + '%</b>. ' + (M.fail === 0 ? 'Rencana tergolong <b>ROBUST</b> dan layak diteruskan.' : M.fail < 0.15 ? 'Rencana berisiko <b>RENDAH</b>; diperlukan pengendalian variabel dominan.' : 'Rencana berisiko <b>TINGGI</b> dan perlu dirancang ulang.');
+      var h = host('proPane-mc', 'proRisalahMc'); if (h) h.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — Monte Carlo &amp; Tornado', tone, risalah, saran, kes, REF.mc);
+    } catch (e) { console.warn('risalah mc', e); }
+  };
+
+  // ---------------- 5. CBA ----------------
+  window.proRisalahCba = function () {
+    try {
+      var C = window.DSSPRO_LAST_CBA; if (!C) return;
+      var ok = C.filter(function (c) { return c.bcr !== null && c.bcr >= 1; });
+      var best = C.slice().sort(function (a, b) { return (b.npv || -1e18) - (a.npv || -1e18); })[0];
+      var hard = C.filter(function (c) { return /Hard/i.test(c.nama); })[0];
+      var nat = C.filter(function (c) { return /Nature/i.test(c.nama); })[0];
+      var hyb = C.filter(function (c) { return /Hybrid/i.test(c.nama); })[0];
+      var M = function (v) { return (v / 1e9).toFixed(1); };
+      var risalah = [
+        'Analisis biaya-manfaat membandingkan 4 skenario selama horizon proyek dengan diskonto sosial: CAPEX, OPEX, manfaat terhindarkan (kerugian lahan tambak, permukiman, infrastruktur) dan manfaat ekosistem (karbon biru, perikanan).',
+        'Nilai kelayakan: ' + C.map(function (c) { return '<b>' + c.nama.split(':')[0] + '</b> NPV ' + (c.npv ? M(c.npv) + ' M' : '0') + ', BCR ' + (c.bcr != null ? f2(c.bcr) : '—') + (c.irr != null && c.irr > 0 ? ', IRR ' + f1(c.irr) + '%' : ''); }).join(' | ') + '.',
+        'Pada grafik arus kas kumulatif, titik potong sumbu nol menandai <i>payback period</i>. ' + (hyb ? 'Hybrid kembali modal dalam <b>' + hyb.payback + '</b>' : '') + (nat ? ', Nature-Based dalam <b>' + nat.payback + '</b>' : '') + '. Struktur keras (seawall) memerlukan CAPEX sangat besar sehingga BCR' + (hard && hard.bcr != null ? ' hanya <b>' + f2(hard.bcr) + '</b>' : ' < 1') + '.',
+        'Skenario layak finansial (BCR ≥ 1): <b>' + (ok.length ? ok.map(function (c) { return c.nama.split(':')[0]; }).join(', ') : 'tidak ada') + '</b>. NPV tertinggi: <b>' + (best ? best.nama : '-') + '</b>.'
+      ];
+      var saran = [
+        'Prioritaskan <b>' + (best ? best.nama : 'skenario ber-NPV tertinggi') + '</b> sebagai inti investasi (NPV tertinggi, payback tercepat), lalu lengkapi dengan <b>Hybrid (permeable dam + mangrove)</b> pada segmen pantai berenergi tinggi yang tidak cukup dilindungi vegetasi saja' + (hyb && hyb.bcr != null ? ' (Hybrid BCR ' + f2(hyb.bcr) + (hyb.bcr < 1.5 ? ', marginal sehingga perlu pembenaran teknis per segmen' : '') + ').' : '.'),
+        'Hindari seawall penuh kecuali untuk segmen kritis (infrastruktur strategis) karena BCR rendah dan biaya pemeliharaan (OPEX) tinggi.',
+        'Uji sensitivitas terhadap <b>tingkat diskonto (6%–12%)</b>, laju kenaikan muka laut, dan kegagalan penanaman mangrove (survival rate) sebelum pengambilan keputusan anggaran.',
+        'Cari skema pendanaan campuran: APBN/APBD, CSR, <i>blue carbon credit</i>, dan KPBU untuk menekan beban CAPEX awal.'
+      ];
+      var kes = 'Secara ekonomi, skenario <b>' + (best ? best.nama : '-') + '</b> memberi NPV tertinggi' + (best && best.bcr ? ' (BCR ' + f2(best.bcr) + ')' : '') + ', sedangkan struktur keras tidak layak finansial' + (hyb && hyb.bcr ? ' dan Hybrid hanya layak marginal (BCR ' + f2(hyb.bcr) + ')' : '') + '. Penilaian ekonomi ini perlu dibaca bersama AHP-TOPSIS (kriteria ekologi &amp; risiko) dan Monte Carlo (ketahanan) sebelum menetapkan strategi final penanganan abrasi pesisir Demak.';
+      var h = host('proPane-cba', 'proRisalahCba'); if (h) h.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — Analisis Ekonomi (CBA)', 'cyan', risalah, saran, kes, REF.cba);
+    } catch (e) { console.warn('risalah cba', e); }
+  };
+
+  // ---------------- 6. SINKRONISASI PASUT - PLUME & ROUSE ----------------
+  window.proRisalahPlume = function () {
+    try {
+      var debit = gv('slider-debit', 45);
+      var td = calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY);
+      var now = DSSPRO.calcTidePlumeCoupling(td, debit, MONSOON);
+      var fase = [['FLOOD', 'Flood (pasang naik)'], ['HIGH_SLACK', 'High Slack (puncak pasang)'], ['EBB', 'Ebb (surut)'], ['LOW_SLACK', 'Low Slack (lembah surut)']];
+      var allC = []; for (var h = 0; h < 24; h++) { var tdh = calcTideAtHourAndDay(h, TIDE_DAY); var c = DSSPRO.calcTidePlumeCoupling(tdh, debit, MONSOON); allC.push({ h: h, c: c, st: tdh.state }); }
+      var vals = allC.map(function (x) { return +x.c.offshoreReachKm || 0; });
+      var mx = Math.max.apply(null, vals), mn = Math.min.apply(null, vals);
+      var hMax = vals.indexOf(mx), hMin = vals.indexOf(mn);
+      var fluks = allC.map(function (x) { return +x.c.settlingFlux_gm2h || 0; });
+      var hFl = fluks.indexOf(Math.max.apply(null, fluks));
+      var ssc = allC.map(function (x) { return +x.c.coreSSC || 0; });
+      var sscMax = Math.max.apply(null, ssc), sscMin = Math.min.apply(null, ssc);
+      var stMax = allC[hMax].st, stMin = allC[hMin].st;
+      var rP = +now.rouseP || 0, rN = rP > 2.5 ? 'dominan bed load (partikel cepat mengendap)' : rP > 1.2 ? 'campuran suspensi-bed load' : rP > 0.8 ? 'suspensi tengah (menyebar ke atas kolom air)' : 'suspensi merata (wash load, tersebar hingga permukaan)';
+      var ws = gv('proPlumeWs', 0.45), tcr = gv('proPlumeTauCr', 0.22), td2 = gv('proPlumeTauD', 0.11), sal = gv('proPlumeSalinity', 28);
+      var tauB = +now.tauB || 0;
+      var bed = now.bedState || '-';
+      var risalah = [
+        'Kopel pasut-plume menghitung, tiap jam, tegangan geser dasar τ<sub>b</sub> dari arus pasut + orbital gelombang, bilangan Rouse P = w<sub>s</sub>/(κu*), konsentrasi SSC inti, fluks deposisi (Krone) dan erosi (Partheniades). Parameter: w<sub>s</sub> = <b>' + f2(ws) + ' mm/s</b>, τ<sub>cr</sub> = <b>' + f2(tcr) + '</b>, τ<sub>d</sub> = <b>' + f2(td2) + ' N/m²</b>, ΔS = <b>' + sal + ' ppt</b>, debit sungai = <b>' + debit + ' m³/s</b>.',
+        'Kondisi sekarang: fase <b>' + (now.regimeName || td.state) + '</b>; τ<sub>b</sub> = <b>' + f3(tauB) + ' N/m²</b>; bilangan Rouse P = <b>' + f2(rP) + '</b> → sedimen ' + rN + '. Status dasar: <b>' + bed + '</b>' + (tauB > tcr ? ' (τ<sub>b</sub> melampaui τ<sub>cr</sub> sehingga resuspensi aktif).' : tauB < td2 * 1.3 ? ' (τ<sub>b</sub> di bawah τ<sub>d</sub>, deposisi dominan).' : '.'),
+        'Grafik <i>Respons Dinamis Plume 24 Jam</i>: jangkauan plume terbesar <b>' + f1(mx) + ' km</b> terjadi pukul <b>' + String(hMax).padStart(2, '0') + ':00</b> (fase ' + stMax + '), terkecil <b>' + f1(mn) + ' km</b> pukul <b>' + String(hMin).padStart(2, '0') + ':00</b> (fase ' + stMin + '). Fluks deposisi tertinggi terjadi pukul <b>' + String(hFl).padStart(2, '0') + ':00</b> (' + f1(Math.max.apply(null, fluks)) + ' g/m²/jam) dan SSC inti berkisar <b>' + f1(sscMin) + '–' + f1(sscMax) + ' mg/L</b>; pengendapan menguat saat τ<sub>b</sub> turun di bawah τ<sub>d</sub>. Baji salinitas masuk sejauh <b>' + f1(now.saltWedgeKm) + ' km</b> (Ri<sub>E</sub> = ' + f1(now.RiE) + ').',
+        'Grafik <i>Profil Vertikal Rouse C(z/h)</i> membandingkan distribusi SSC di kolom air saat Flood, Ebb dan Slack. Kurva lebih tegak (P kecil) = sedimen tersuspensi merata; kurva menumpuk di dasar (P besar) = sedimen cenderung mengendap. Baji salinitas ΔS = ' + sal + ' ppt memicu flokulasi pada zona turbiditas maksimum (ETM).',
+        'Matriks 4 fase merangkum arah vektor, panjang plume, SSC, dan rezim fisis tiap fase pasut sehingga mudah dibandingkan.'
+      ];
+      var saran = [
+        'Jadwalkan <b>pengerukan/penempatan material</b> saat fase surut-low slack ketika plume terlempar jauh dan turbiditas tinggi sudah teradvekasi menjauh dari kawasan mangrove.',
+        'Pada <b>High Slack</b> (deposisi maksimum), hindari aktivitas yang menambah beban sedimen halus di muara; fase ini ideal untuk <i>sediment trapping</i> oleh vegetasi mangrove.',
+        'Kalibrasi w<sub>s</sub>, τ<sub>cr</sub>, τ<sub>d</sub> dengan sampel lapangan (LISST/OBS, uji laboratorium Settling Column) pada musim Barat dan Timur; w<sub>s</sub> flokulan sangat sensitif terhadap salinitas.',
+        'Pasang OBS/turbidimeter pada AWLR Bonang &amp; Muara Kali Jajar untuk verifikasi jangkauan plume serta ekspor CSV 24 jam sebagai bahan validasi.',
+        'Integrasikan dengan <b>permeable dam</b> dan sabuk mangrove pada zona deposisi untuk memperbesar penjeratan sedimen halus.'
+      ];
+      var kes = 'Pada kondisi saat ini sistem berada pada rezim <b>' + (now.regimeName || td.state) + '</b> dengan bilangan Rouse <b>' + f2(rP) + '</b>, sehingga sedimen ' + rN + '. Plume bervariasi <b>' + f1(mn) + '–' + f1(mx) + ' km</b> sepanjang siklus pasut; <b>slack water adalah jendela pengendapan terbaik</b> sedangkan <b>ebb tidal jet</b> membawa sedimen halus ke laut lepas. Informasi ini mendukung penentuan waktu operasi pengerukan dan lokasi struktur penjerat.';
+      var hh = host('proPane-plume', 'proRisalahPlume'); if (hh) hh.innerHTML = panel('Risalah Teknis, Saran &amp; Kesimpulan — Sinkronisasi Pasut-Plume &amp; Profil Rouse', 'cyan', risalah, saran, kes, REF.plume);
+    } catch (e) { console.warn('risalah plume', e); }
+  };
+
+  // Pasang ke pipeline: bungkus fungsi proRun* yang ada agar risalah ikut ter-render otomatis
+  function wrap(name, risalahFn) {
+    var orig = window[name]; if (typeof orig !== 'function' || orig.__risalah) return;
+    var w = function () { var r = orig.apply(this, arguments); try { window[risalahFn](); } catch (e) {} return r; };
+    w.__risalah = true; window[name] = w;
+  }
+  wrap('proRunCerc', 'proRisalahCerc');
+  wrap('proRunBudget', 'proRisalahBudget');
+  wrap('proRunAhp', 'proRisalahAhp');
+  wrap('proRunMC', 'proRisalahMc');
+  wrap('proRunCBA', 'proRisalahCba');
+  wrap('proRunPlumeSync', 'proRisalahPlume');
+})();
+
+</script>
+
         
 
 
@@ -7426,6 +9066,85 @@ toggleGisLayer = function(layerKey) {
                         <span class="text-[10px] text-emerald-400 font-mono">Kenaikan Dasar Laut +Δz Akumulatif</span>
                     </div>
                     <div class="h-64 sm:h-72 w-full"><canvas id="bedloadProfileChart"></canvas></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ==================== MODAL: KATALOG BASIS DATA GOOGLE DRIVE MORODEMAK (V5.0 PRO) ==================== -->
+    <div id="gdriveCatalogModal" class="fixed inset-0 z-[125] hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-4" onclick="if(event.target===this)closeGDriveCatalogModal()">
+        <div class="bg-slate-900 border-2 border-blue-500/80 rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+            <div class="p-3.5 sm:p-4 bg-slate-950 border-b border-blue-900/60 flex justify-between items-center gap-2">
+                <div class="flex items-center gap-2.5 text-blue-400 font-tech font-black text-sm sm:text-base uppercase tracking-wider">
+                    <i class="fa-brands fa-google-drive text-amber-400 text-lg"></i>
+                    <span>DIREKTORI REPOSITORI RISET DISERTASI — FOLDER MORODEMAK (G-DRIVE)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <a href="https://drive.google.com/drive/folders/1yLgT_a6f35jxaEThoHVdqNSmuNmprdh6" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-blue-700 hover:bg-blue-600 text-white rounded-lg text-xs font-mono font-bold flex items-center gap-1.5 shadow">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Folder Utama
+                    </a>
+                    <button type="button" onclick="closeGDriveCatalogModal()" class="w-8 h-8 rounded-lg bg-slate-900 hover:bg-rose-900/80 border border-slate-700 text-slate-300 hover:text-white flex items-center justify-center text-sm cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="p-4 sm:p-5 overflow-y-auto custom-scrollbar space-y-4 text-xs font-mono text-slate-300">
+                <p class="text-slate-300 font-sans text-xs sm:text-sm leading-relaxed">
+                    Integrasi langsung dengan repositori data primer dan sekunder Disertasi S3 Teknik Sipil UNDIP pada folder Google Drive <b>Morodemak</b>:
+                </p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                    <a href="https://drive.google.com/drive/folders/1_M26P5KHA0e0z6gKE1MqbNZVtcNYCSD9" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-emerald-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-map-location-dot text-emerald-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-emerald-300 text-xs">Data Spasial Jragung Tuntang</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Poligon KMZ/SHP Batas DAS &amp; Jaringan Sungai Resmi BPDAS Pemali Jratun</div>
+                        </div>
+                    </a>
+                    <a href="https://drive.google.com/drive/folders/1b09uJUjg4E4Fr4AVy-sDHyJPcDqF6TVI" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-cyan-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-layer-group text-cyan-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-cyan-300 text-xs">Data MORODEMAK_All peta</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Kumpulan Peta Tematik Batimetri, Sebaran Sedimen &amp; Garis Pantai Demak</div>
+                        </div>
+                    </a>
+                    <a href="https://drive.google.com/drive/folders/1gRjPBp6S-SFh9K6kz9Jn0pdEgg9AN8QN" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-amber-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-draw-polygon text-amber-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-amber-300 text-xs">SHP_Demak</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Shapefile Administrasi, Penggunaan Lahan &amp; Infrastruktur Pesisir Demak</div>
+                        </div>
+                    </a>
+                    <a href="https://drive.google.com/drive/folders/1ihVsHAP-Q9XXh81936IagaqFUZdDtX3Q" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-blue-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-cloud-showers-water text-blue-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-blue-300 text-xs">Curah Hujan dan Debit</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Data Pos Hujan BBWS Pemali Juana &amp; Hidrograf Banjir Rencana HEC-HMS</div>
+                        </div>
+                    </a>
+                    <a href="https://drive.google.com/drive/folders/15uBdGQJpIrinpg7w97Iin5iL-WnAWAPW" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-teal-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-tree text-teal-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-teal-300 text-xs">Data Mangrove Jateng</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Kerapatan &amp; Luas Sabuk Hijau Mangrove Sayung, Karangtengah, Bonang</div>
+                        </div>
+                    </a>
+                    <a href="https://drive.google.com/file/d/1S4QhuZHqANTxfn6CGBtiHDnytIFasp4G/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="p-3 bg-slate-950 hover:bg-slate-900 border border-purple-500/50 rounded-xl flex items-start gap-3 transition-all group">
+                        <i class="fa-solid fa-file-word text-purple-400 text-xl mt-0.5 group-hover:scale-110 transition-transform"></i>
+                        <div>
+                            <div class="font-bold text-purple-300 text-xs">Laporan V&amp;V &amp; Kausalitas v5.0</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">00_Narasi_VV_Kausalitas_SOP_DSS_Sedimen_Pro_v5_FINAL.docx</div>
+                        </div>
+                    </a>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-file-lines text-emerald-400"></i>
+                        <span>Naskah Akademik Disertasi S3: <b>Naskah_Disertasi_S3_Pengelolaan_Sedimen_Pesisir_Demak.docx</b></span>
+                    </div>
+                    <a href="https://drive.google.com/file/d/1WNI3bkbR_DwoiWH6O0RG6aa9tfS56gP_/view?usp=drivesdk" target="_blank" rel="noopener noreferrer" class="px-2.5 py-1 bg-emerald-900/70 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/50 rounded text-[10.5px] font-bold">
+                        Buka Dokumen <i class="fa-solid fa-arrow-up-right-from-square ml-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
