@@ -361,7 +361,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSS Sedimen Pro v5.0.1 Professional — Sinkronisasi Dinamis Plume Vektor Sedimen Laut & Telemetri Pasut (Disertasi S3 Teknik Sipil UNDIP)</title>
+    <title>DSS Sedimen Pro v5.0.2 Professional — Sinkronisasi Dinamis Plume Vektor Sedimen Laut & Telemetri Pasut (Disertasi S3 Teknik Sipil UNDIP)</title>
     
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -1174,6 +1174,22 @@
         }
 
     </style>
+
+<style id="dssV502ChartLayout">
+/* [v5.0.2] Rapikan grafik vs risalah: kontainer chart tertutup rapat, risalah di bawah dengan jarak jelas */
+#studioProModal [id^="proPane-"] canvas { display:block; max-width:100%; }
+#studioProModal [id^="proPane-"] div:has(> canvas) { position:relative; overflow:hidden; min-width:0; }
+#studioProModal [id^="proPane-"] > div { min-width:0; }
+#studioProModal [id^="proRisalah"] { position:relative; z-index:1; clear:both; margin-top:16px !important; isolation:isolate; }
+#studioProModal [id^="proRisalah"] > div, #studioProModal [id^="proRisalah"] > section { position:relative; }
+/* tinggi grafik sedikit lebih lega di layar besar agar profesional */
+@media (min-width:1280px){
+  #studioProModal #proPane-budget div:has(> #proBudgetChart),
+  #studioProModal #proPane-ahp div:has(> #proAhpChart) { height:240px !important; }
+  #studioProModal #proPane-budget div:has(> #proOnelineChart),
+  #studioProModal #proPane-ahp div:has(> #proTopsisChart) { height:280px !important; }
+}
+</style>
 </head>
 <body id="appBody" class="theme-dark bg-[var(--bg-main)] text-[var(--text-main)] p-3 md:p-5 min-h-screen flex flex-col justify-between overflow-x-hidden relative pb-28">
 
@@ -5526,22 +5542,43 @@ const proChartDefaults = { responsive:true, maintainAspectRatio:false,
   scales:{ x:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8', font:{size:9}} },
            y:{ grid:{color:'rgba(255,255,255,0.05)'}, ticks:{color:'#94a3b8', font:{size:9}} } } };
 
+// [v5.0.2] FIX OVERLAP: Chart.js hanya membaca responsive/maintainAspectRatio dari dalam `options`.
+// Sebelumnya diletakkan di level atas (diabaikan) -> grafik memakai rasio lebar:tinggi 2:1 dan
+// membengkak melewati kontainer h-[Npx], menimpa panel Risalah/Saran. Kini dibungkus benar.
+function proMkOpts(cfg){
+  var base = {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 350 },
+    layout: { padding: { top: 4, right: 8, bottom: 2, left: 2 } },
+    plugins: proChartDefaults.plugins,
+    scales: proChartDefaults.scales
+  };
+  cfg = cfg || {};
+  var o = cfg.options || {};
+  cfg.options = Object.assign({}, base, o);
+  if (o.plugins) cfg.options.plugins = Object.assign({}, base.plugins, o.plugins);
+  if (o.scales)  cfg.options.scales  = Object.assign({}, base.scales,  o.scales);
+  cfg.options.responsive = true; cfg.options.maintainAspectRatio = false;
+  return cfg;
+}
+
 function proInitAll(){
   // ===== TAB A: CERC =====
   const ctxA = document.getElementById('proCercChart');
-  if(ctxA) DSSPRO_charts.cerc = new Chart(ctxA, Object.assign({}, proChartDefaults, {
+  if(ctxA) DSSPRO_charts.cerc = new Chart(ctxA, proMkOpts({
     type:'line',
     data:{ labels:[], datasets:[{ label:'Transport longshore Ql (ribu m³/th)', data:[], borderColor:'#38bdf8', tension:0.35, fill:true, backgroundColor:'rgba(56,189,248,0.08)' }] }
   }));
   proRunCerc();
   // ===== TAB B =====
   const ctxB = document.getElementById('proBudgetChart');
-  if(ctxB) DSSPRO_charts.budget = new Chart(ctxB, Object.assign({}, proChartDefaults, {
+  if(ctxB) DSSPRO_charts.budget = new Chart(ctxB, proMkOpts({
     type:'bar',
     data:{ labels:[], datasets:[{ label:'Volume (m³/th per km pantai)', data:[], backgroundColor:[] }] }
   }));
   const ctxOL = document.getElementById('proOnelineChart');
-  if(ctxOL) DSSPRO_charts.oneline = new Chart(ctxOL, Object.assign({}, proChartDefaults, {
+  if(ctxOL) DSSPRO_charts.oneline = new Chart(ctxOL, proMkOpts({
     type:'line',
     data:{ labels:[], datasets:[
       { label:'Posisi garis pantai awal', data:[], borderColor:'#64748b', borderDash:[6,4] },
@@ -5551,17 +5588,17 @@ function proInitAll(){
   proRunBudget();
   // ===== TAB C =====
   const ctxW = document.getElementById('proAhpChart');
-  if(ctxW) DSSPRO_charts.ahp = new Chart(ctxW, Object.assign({}, proChartDefaults, {
+  if(ctxW) DSSPRO_charts.ahp = new Chart(ctxW, proMkOpts({
     type:'bar', data:{ labels:[], datasets:[{ label:'Bobot AHP', data:[], backgroundColor:['#10b981','#38bdf8','#f59e0b','#a855f7','#f43f5e'] }] }
   }));
   const ctxT = document.getElementById('proTopsisChart');
-  if(ctxT) DSSPRO_charts.topsis = new Chart(ctxT, Object.assign({}, proChartDefaults, {
+  if(ctxT) DSSPRO_charts.topsis = new Chart(ctxT, proMkOpts({
     type:'bar', data:{ labels:[], datasets:[{ label:'Closeness C* TOPSIS', data:[], backgroundColor:['#ef4444','#f59e0b','#38bdf8','#10b981'] }] }
   }));
   proBuildAhpMatrix(); proRunAhp();
   // ===== TAB D =====
   const ctxM = document.getElementById('proMcChart');
-  if(ctxM) DSSPRO_charts.mc = new Chart(ctxM, Object.assign({}, proChartDefaults, {
+  if(ctxM) DSSPRO_charts.mc = new Chart(ctxM, proMkOpts({
     type:'bar', data:{ labels:[], datasets:[{ label:'Frekuensi IKS 2040 (1000 iterasi)', data:[], backgroundColor:'#38bdf8' }] }
   }));
   const ctxTD = document.getElementById('proTornadoChart');
@@ -5605,7 +5642,7 @@ function proInitAll(){
   proRunMC();
   // ===== TAB E =====
   const ctxC = document.getElementById('proCbaChart');
-  if(ctxC) DSSPRO_charts.cba = new Chart(ctxC, Object.assign({}, proChartDefaults, {
+  if(ctxC) DSSPRO_charts.cba = new Chart(ctxC, proMkOpts({
     type:'line', data:{ labels:Array.from({length:16},(_,i)=>""+i),
       datasets:[
         { label:'Baseline', data:[], borderColor:'#64748b', borderDash:[5,4] },
