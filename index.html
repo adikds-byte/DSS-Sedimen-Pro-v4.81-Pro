@@ -361,7 +361,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSS Sedimen Pro v5.0.2 Professional — Sinkronisasi Dinamis Plume Vektor Sedimen Laut & Telemetri Pasut (Disertasi S3 Teknik Sipil UNDIP)</title>
+    <title>DSS Sedimen Pro v5.0.3 Professional — Sinkronisasi Dinamis Plume Vektor Sedimen Laut & Telemetri Pasut (Disertasi S3 Teknik Sipil UNDIP)</title>
     
     <!-- External Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
@@ -1373,6 +1373,9 @@
                     <div class="mt-1.5">
                         <button type="button" onclick="toggleGisLayer('hydrogrid')" id="layerBtn-hydrogrid" class="w-full px-2.5 py-1.5 bg-gradient-to-r from-emerald-950/80 to-slate-950 border border-emerald-500/70 hover:border-emerald-400 text-emerald-300 rounded-lg text-[11px] font-mono font-bold flex items-center justify-between transition-all cursor-pointer shadow-md">
                             <span class="flex items-center gap-1.5"><i class="fa-solid fa-compass-drafting text-emerald-400 animate-spin" style="animation-duration:6s;"></i> VEKTOR ARUS LAUT 2D &amp; MULTI-MUARA</span> <span id="chk-hydrogrid" class="text-emerald-400 font-bold">✓</span>
+                        </button>
+                        <button type="button" onclick="dssOpenMouthEditor()" class="w-full px-2.5 py-1.5 bg-gradient-to-r from-cyan-800 to-sky-900 border border-cyan-500/60 rounded-lg text-[10px] text-cyan-100 hover:from-cyan-700 transition-all">
+                            <span class="flex items-center gap-1.5"><i class="fa-solid fa-location-crosshairs text-cyan-400"></i> Edit Titik Muara</span>
                         </button>
                     </div>
                     <!-- TOMBOL EKSPLORER DIREKTORI GOOGLE DRIVE RISET -->
@@ -7530,6 +7533,107 @@ var ESTUARY_OUTLETS_DEMAK = [
     { id: "kliteh", name: "Muara Kali Kliteh / Wulan–Bonang", lat: -6.8120, lng: 110.5620, scale: 0.48, qShare: 0.17 }
 ];
 
+// =========================================================================
+// [v5.0.3] KOREKSI TITIK MUARA & SEBARAN PLUME TERHADAP GARIS PANTAI NYATA
+// MASALAH: titik muara Sayung & Kliteh berada di DARAT (±690 m & ±960 m dari laut); sudut lobus
+//   & partikel dipatok tetap (305°/55°) tak peduli orientasi pantai; pada fase FLOOD partikel
+//   digerakkan ke selatan (= menuju daratan Demak).
+// SOLUSI: masker laut terukur dari citra satelit Esri (zoom 13, ±76 m/sel); tiap muara punya
+//   titik pantai + NORMAL LAUT; semua posisi lobus/partikel/vektor yang jatuh di darat dikembalikan
+//   ke tepi laut; titik muara dapat diedit di peta & disimpan (localStorage).
+// =========================================================================
+var DEMAK_COAST = (function () {
+    var META = {x0: 6609, y0: 4250, z: 13, w: 320, h: 320, b: 4};
+    var RLE = [[0],[0,1,153],[0,1,154,155,156],[0,1,156],[0,1,156],[0,1,154],[0,1,153],[0,1,154],[0,1,156],[0,1,157],[0,1,157],[0,1,158],[0,1,159],[0,1,159],[0,1,159],[0,1,159],[0,1,159],[0,1,160,164,168],[0,1,160,162,168],[0,1,160,162,168],[0,1,160,163,169],[0,1,161,164,171],[0,1,172],[0,1,172],[0,1,169],[0,1,169],[0,1,169,188,189],[0,1,169,187,189],[0,1,170,174,176,184,190,192,194],[0,1,179,183,194],[0,1,194],[0,1,194],[0,1,193],[0,1,193],[0,1,192],[0,1,192],[0,1,192],[0,1,191],[0,1,192],[0,1,191],[0,1,190],[0,1,189],[0,1,189],[0,1,188],[0,1,188],[0,1,188],[0,1,188],[0,1,188],[0,1,188],[0,1,188],[0,1,189],[0,1,189],[0,1,190],[0,1,189],[0,1,189],[0,1,189],[0,1,188],[0,1,188],[0,1,187],[0,1,187],[0,1,186],[0,1,186],[0,1,186],[0,1,186],[0,1,185],[0,1,184],[0,1,184],[0,1,184],[0,1,184],[0,1,183],[0,1,182],[0,1,182],[0,1,181],[0,1,181],[0,1,180],[0,1,180],[0,1,180],[0,1,180],[0,1,179],[0,1,175],[0,1,173],[0,1,173],[0,1,169,171,172],[0,1,168],[0,1,167],[0,1,167],[0,1,166],[0,1,165],[0,1,165],[0,1,164],[0,1,164],[0,1,163],[0,1,158,159,161],[0,1,157],[0,1,156],[0,1,157],[0,1,157],[0,1,157],[0,1,156],[0,1,154],[0,1,153],[0,1,153],[0,1,152],[0,1,151],[0,1,150],[0,1,149],[0,1,148],[0,1,147],[0,1,147],[0,1,146],[0,1,145],[0,1,144],[0,1,143],[0,1,142],[0,1,142],[0,1,141],[0,1,140],[0,1,139],[0,1,138],[0,1,137],[0,1,131],[0,1,130],[0,1,130],[0,1,130],[0,1,130],[0,1,130],[0,1,132],[0,1,133],[0,1,134],[0,1,135],[0,1,135],[0,1,135],[0,1,136],[0,1,136],[0,1,136],[0,1,136],[0,1,130,131,136],[0,1,128,132,138],[0,1,128,132,138],[0,1,127,132,137],[0,1,126,133,135],[0,1,126,134,135],[0,1,125,134,135],[0,1,125],[0,1,124],[0,1,124],[0,1,123],[0,1,122],[0,1,122],[0,1,121],[0,1,121],[0,1,120],[0,1,111],[0,1,111],[0,1,110],[0,1,110],[0,1,110],[0,1,109],[0,1,105],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,104],[0,1,99],[0,1,98],[0,1,98],[0,1,97],[0,1,97],[0,1,97],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,96],[0,1,93],[0,1,91],[0,1,90],[0,1,90],[0,1,90],[0,1,90],[0,1,89],[0,1,88],[0,1,84,86,88],[0,1,84],[0,1,84],[0,1,84],[0,1,84],[0,1,83],[0,1,82],[0,1,81],[0,1,81],[0,1,80],[0,1,78],[0,1,75],[0,1,75],[0,1,74],[0,1,73],[0,1,72],[0,1,72],[0,1,72],[0,1,71],[0,1,71],[0,1,70],[0,1,69],[0,1,69],[0,1,68],[0,1,67],[0,1,66],[0,1,65],[0,1,64],[0,1,64],[0,1,64],[0,1,64],[0,1,64],[0,1,61],[0,1,59],[0,1,58],[0,1,57],[0,1,56],[0,1,56],[0,1,56],[0,1,56],[0,1,53],[0,1,52],[0,1,51],[0,1,50],[0,1,49],[0,1,48],[0,1,48],[0,1,48],[0,1,47,52,53],[0,1,49,50,54],[0,1,54],[0,1,50,52,54],[0,1,49],[0,1,50],[0,1,50],[0,1,50],[0,1,47,48,49],[0,1,28,29,47],[0,1,27,30,31,32,46],[0,1,26,33,46],[0,1,21,25,26,32,45],[0,1,6,11,20,32,45],[0,1,5,12,19,32,38,41,45],[0,1,4,11,19,32,37,43,44],[0,1,5,11,19,32,34],[0,1,6,11,18,32,34],[0,1,6,11,18],[0,1,7,12,19],[0,1,7,13,19],[0,1,7,14,18],[0,1,7,13,17],[0,1,8,9,10,13,16],[0,1,10],[0,1,9],[0,1,9],[0,1,8],[0,1,8],[0,1,6],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0],[0]];
+    var mask = null;
+    function decode() {
+        if (mask) return mask;
+        mask = new Uint8Array(META.w * META.h);
+        for (var y = 0; y < META.h; y++) {
+            var row = RLE[y], v = row[0], prev = 0;
+            for (var i = 1; i <= row.length; i++) {
+                var c = (i < row.length) ? row[i] : META.w;
+                for (var x = prev; x < c; x++) mask[y * META.w + x] = v;
+                v ^= 1; prev = c;
+            }
+        }
+        return mask;
+    }
+    function toCell(lat, lng) {
+        var n = Math.pow(2, META.z), la = lat * Math.PI / 180;
+        var xx = (lng + 180) / 360 * n;
+        var yy = (1 - Math.log(Math.tan(la) + 1 / Math.cos(la)) / Math.PI) / 2 * n;
+        return [(xx - META.x0) * 256 / META.b, (yy - META.y0) * 256 / META.b];
+    }
+    function toLatLng(cx, cy) {
+        var n = Math.pow(2, META.z);
+        var lng = (cx * META.b / 256 + META.x0) / n * 360 - 180;
+        var lat = Math.atan(Math.sinh(Math.PI * (1 - 2 * (cy * META.b / 256 + META.y0) / n))) * 180 / Math.PI;
+        return [lat, lng];
+    }
+    function isSea(lat, lng) {
+        var m = decode(), c = toCell(lat, lng), x = Math.floor(c[0]), y = Math.floor(c[1]);
+        if (y < 0) return true;                                  // di utara kisi = laut terbuka
+        if (x < 0 || y >= META.h || x >= META.w) return false;
+        return m[y * META.w + x] === 1;
+    }
+    // Cari titik laut terdekat (spiral) -> mengembalikan [lat,lng] di laut, atau null
+    function nearestSea(lat, lng, maxM) {
+        if (isSea(lat, lng)) return [lat, lng];
+        var c = toCell(lat, lng), cell = 76, maxR = Math.ceil((maxM || 6000) / cell), best = null, bd = 1e9, m = decode();
+        for (var r = 1; r <= maxR; r++) {
+            for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+                if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+                var x = Math.floor(c[0]) + dx, y = Math.floor(c[1]) + dy;
+                if (x < 0 || y < 0 || x >= META.w || y >= META.h) continue;
+                if (m[y * META.w + x] === 1) { var d = dx * dx + dy * dy; if (d < bd) { bd = d; best = [x + 0.5, y + 0.5]; } }
+            }
+            if (best) break;
+        }
+        return best ? toLatLng(best[0], best[1]) : null;
+    }
+    // Normal laut (bearing derajat dari utara, searah jarum jam) di sekitar titik: arah menjauh dari darat
+    function seaNormalDeg(lat, lng) {
+        var c = toCell(lat, lng), m = decode(), sx = 0, sy = 0, R = 14;
+        for (var dy = -R; dy <= R; dy++) for (var dx = -R; dx <= R; dx++) {
+            var x = Math.floor(c[0]) + dx, y = Math.floor(c[1]) + dy, v;
+            if (y < 0) v = 1; else if (x < 0 || x >= META.w || y >= META.h) v = 0; else v = m[y * META.w + x];
+            if (v === 1) { sx += dx; sy += dy; }
+        }
+        var n = Math.hypot(sx, sy) || 1;
+        return (Math.atan2(sx / n, -sy / n) * 180 / Math.PI + 360) % 360;   // sy ke selatan => -utara
+    }
+    // Tarik titik ke laut: bila di darat, geser mundur sepanjang jalur dari titik asal (origin) hingga laut
+    function clampToSea(lat, lng, oLat, oLng) {
+        if (isSea(lat, lng)) return [lat, lng];
+        for (var t = 0.9; t >= 0; t -= 0.1) {
+            var la = oLat + (lat - oLat) * t, lo = oLng + (lng - oLng) * t;
+            if (isSea(la, lo)) return [la, lo];
+        }
+        return [oLat, oLng];
+    }
+    return { META: META, isSea: isSea, nearestSea: nearestSea, seaNormalDeg: seaNormalDeg, clampToSea: clampToSea };
+})();
+
+// Titik muara hasil koreksi (terukur dari garis pantai citra satelit). Disimpan bila diedit pengguna.
+var DEMAK_MOUTH_DEFAULT = {
+    jajar:  { lat: -6.82400, lng: 110.51800, normalDeg: 327 },
+    sayung: { lat: -6.8806, lng: 110.49537, normalDeg: 307 },
+    kliteh: { lat: -6.8048, lng: 110.5566, normalDeg: 319 }
+};
+(function applyDemakMouths() {
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem('dss_demak_mouths_v503') || 'null'); } catch (e) {}
+    ESTUARY_OUTLETS_DEMAK.forEach(function (est) {
+        var d = (saved && saved[est.id]) || DEMAK_MOUTH_DEFAULT[est.id];
+        if (!d) return;
+        est.lat = d.lat; est.lng = d.lng;
+        est.seaNormal = (d.normalDeg !== undefined) ? d.normalDeg : DEMAK_COAST.seaNormalDeg(d.lat, d.lng);
+    });
+})();
+
+
+
 // Titik Grid Vektor Hidrodinamika 2D di Perairan Laut Demak
 var HYDRO_GRID_POINTS = [
     { lat: -6.805, lng: 110.475 }, { lat: -6.800, lng: 110.505 }, { lat: -6.795, lng: 110.535 }, { lat: -6.790, lng: 110.565 }, { lat: -6.788, lng: 110.595 },
@@ -7538,6 +7642,24 @@ var HYDRO_GRID_POINTS = [
     { lat: -6.895, lng: 110.450 }, { lat: -6.882, lng: 110.478 }, { lat: -6.868, lng: 110.496 },
     { lat: -6.925, lng: 110.452 }, { lat: -6.912, lng: 110.472 }
 ];
+
+// [v5.0.3] Titik grid vektor yang berada di DARAT dipindahkan ke perairan terdekat (offset 150 m ke laut)
+var HYDRO_GRID_RELOCATED = 0;
+(function relocateGridToSea() {
+    HYDRO_GRID_POINTS.forEach(function (pt) {
+        if (!DEMAK_COAST.isSea(pt.lat, pt.lng)) {
+            var ns = DEMAK_COAST.nearestSea(pt.lat, pt.lng, 9000);
+            if (ns) {
+                var nrm = DEMAK_COAST.seaNormalDeg(ns[0], ns[1]) * Math.PI / 180;
+                var cosL = Math.cos(ns[0] * Math.PI / 180);
+                pt.lat = ns[0] + (150 / 111320) * Math.cos(nrm);
+                pt.lng = ns[1] + (150 / (111320 * cosL)) * Math.sin(nrm);
+                if (!DEMAK_COAST.isSea(pt.lat, pt.lng)) { pt.lat = ns[0]; pt.lng = ns[1]; }
+                HYDRO_GRID_RELOCATED++;
+            }
+        }
+    });
+})();
 
 // Perhitungan Kopel Fisis Hidrodinamika Pasut - Plume Sedimen Laut (Winterwerp & van Rijn)
 DSSPRO.calcTidePlumeCoupling = function(tData, valDebit, monsoonKey) {
@@ -7687,6 +7809,100 @@ function buildTideCoupledLobePolygon(originLat, originLng, centerDeg, halfWidthD
     return pts;
 }
 
+
+// =========================================================================
+// [v5.0.3] EDITOR TITIK MUARA (DRAG & DROP) — Kalibrasi Posisi Muara di Peta
+// =========================================================================
+var mouthEditorActive = false;
+var mouthEditorMarkers = [];
+
+function dssMouthEditorRefresh() {
+    // Rebuild jalur laut streamline dari titik muara baru
+    try { rebuildStreamlinesForMouths(); } catch(e) {}
+    try { updateSedimentStreamlines(); } catch(e) {}
+    try { initMarinePlumeVectorEngine(); } catch(e) {}
+    try { renderBilateralPlume((document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45, undefined); } catch(e) {}
+    try { updateHudCoupledPlumeStrip(DSSPRO.calcTidePlumeCoupling(calcTideAtHourAndDay(TIDE_HOUR, TIDE_DAY), (document.getElementById('slider-debit') ? parseInt(document.getElementById('slider-debit').value) : 45) || 45, MONSOON)); } catch(e) {}
+}
+
+function dssSaveMouths() {
+    // Simpan dalam format yang dibaca loader applyDemakMouths (kunci & skema sama)
+    var obj = {};
+    ESTUARY_OUTLETS_DEMAK.forEach(function(e){
+        obj[e.id] = { lat: e.lat, lng: e.lng, normalDeg: (e.seaNormal !== undefined ? e.seaNormal : DEMAK_COAST.seaNormalDeg(e.lat, e.lng)) };
+    });
+    try { localStorage.setItem('dss_demak_mouths_v503', JSON.stringify(obj)); } catch(e) {}
+}
+
+function dssResetMouths() {
+    try { localStorage.removeItem('dss_demak_mouths_v503'); } catch(e) {}
+    ESTUARY_OUTLETS_DEMAK.forEach(function(est){
+        var d = DEMAK_MOUTH_DEFAULT[est.id];
+        if (!d) return;
+        est.lat = d.lat; est.lng = d.lng; est.seaNormal = d.normalDeg;
+    });
+    dssMouthEditorRefresh();
+    toastNotifikasi('Titik muara dikembalikan ke posisi kalibrasi awal', 'fa-rotate-left');
+    if (mouthEditorActive) { dssCloseMouthEditor(); dssOpenMouthEditor(); }
+}
+
+function dssOpenMouthEditor() {
+    if (!window.map) { toastNotifikasi('Peta belum siap — tunggu peta termuat', 'fa-triangle-exclamation'); return; }
+    if (mouthEditorActive) { dssCloseMouthEditor(); return; }
+    mouthEditorActive = true;
+
+    mouthEditorMarkers = ESTUARY_OUTLETS_DEMAK.map(function(est, i) {
+        var mk = L.marker([est.lat, est.lng], {
+            draggable: true,
+            pane: 'stationsPane',
+            icon: L.divIcon({
+                className: '',
+                iconSize: [18, 18], iconAnchor: [9, 9],
+                html: '<div style="width:18px;height:18px;border-radius:50%;background:#22d3ee;border:3px solid #fff;box-shadow:0 0 10px #06b6d4;cursor:grab"></div>'
+            })
+        }).addTo(map);
+        mk.bindTooltip('<b class="text-cyan-300">' + est.name + '</b><br>Geser pin ini tepat ke mulut sungai', { permanent: false, direction: 'top', className: 'font-mono text-[10px]' });
+        mk.on('dragend', function(ev) {
+            var pos = ev.target.getLatLng();
+            est.lat = pos.lat; est.lng = pos.lng;
+            if (!DEMAK_COAST.isSea(est.lat, est.lng)) {
+                toastNotifikasi('PERINGATAN: titik muara "' + est.id + '" berada di darat menurut masker pantai — sebaran plume tetap diklem ke laut, tapi sebaiknya geser pin ke laut/garis pantai', 'fa-triangle-exclamation');
+            } else {
+                est.seaNormal = DEMAK_COAST.seaNormalDeg(est.lat, est.lng);
+            }
+            dssSaveMouths();
+            dssMouthEditorRefresh();
+            toastNotifikasi('Muara ' + est.id + ' dipindah → plume, partikel & streamline disinkronkan ulang', 'fa-location-crosshairs');
+        });
+        return mk;
+    });
+
+    var panelHtml =
+        '<div class="fixed z-[10060] top-3 left-1/2 -translate-x-1/2 bg-slate-950/95 border-2 border-cyan-500 rounded-xl px-3.5 py-2.5 shadow-2xl font-mono" style="max-width:min(92vw,560px)">' +
+        '<div class="flex items-center justify-between gap-3">' +
+        '<div class="text-cyan-300 text-xs font-bold"><i class="fa-solid fa-location-crosshairs"></i> MODE EDIT TITIK MUARA — geser pin cyan di peta ke mulut sungai sebenarnya</div>' +
+        '<div class="flex gap-1.5">' +
+        '<button onclick="dssResetMouths()" class="px-2 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded text-[10px] text-slate-200">RESET</button>' +
+        '<button onclick="dssCloseMouthEditor()" class="px-2 py-1 bg-cyan-700 hover:bg-cyan-600 rounded text-[10px] text-white font-bold">SELESAI</button>' +
+        '</div></div>' +
+        '<div class="text-[9.5px] text-slate-400 mt-1">Posisi tersimpan otomatis di perangkat ini (localStorage). Muara: Jajar (tengah) · Sayung/Jragung (barat) · Kliteh/Morodemak (timur).</div>' +
+        '</div>';
+    var holder = document.createElement('div');
+    holder.id = 'mouthEditorPanel';
+    holder.innerHTML = panelHtml;
+    document.body.appendChild(holder);
+    map.flyTo([ESTUARY_OUTLETS_DEMAK[0].lat, ESTUARY_OUTLETS_DEMAK[0].lng], 14, { duration: 1.2 });
+    toastNotifikasi('Mode Edit Muara aktif — geser pin cyan di peta', 'fa-location-crosshairs');
+}
+
+function dssCloseMouthEditor() {
+    mouthEditorActive = false;
+    mouthEditorMarkers.forEach(function(m){ try { map.removeLayer(m); } catch(e){} });
+    mouthEditorMarkers = [];
+    var p = document.getElementById('mouthEditorPanel');
+    if (p) p.remove();
+}
+
 // Override renderBilateralPlume untuk Sinkronisasi Penuh Plume + Multi-Muara + ETM + Ebb Front
 renderBilateralPlume = function(valDebit, tidePhase) {
     const mo = DSS_MONSOON[MONSOON];
@@ -7714,9 +7930,11 @@ renderBilateralPlume = function(valDebit, tidePhase) {
         // Sudut pusat Lobus Kiri (Barat) & Lobus Kanan (Timur) yang beradaptasi dengan Flood/Ebb/Slack:
         // Saat FLOOD: melengkung ke arah pantai (Kiri -> 278°, Kanan -> 82°)
         // Saat EBB: menjorok ke laut & mengikuti drift (Kiri -> 312°..292°, Kanan -> 48°..68°)
-        const leftCenterDeg  = 305 - cp.lobeBendDeg + (cp.state === 'EBB' ? (isBarat ? 12 : -14) : 0);
-        const rightCenterDeg = 55  + cp.lobeBendDeg + (cp.state === 'EBB' ? (isBarat ? 14 : -12) : 0);
-        const halfWidth = cp.state === 'FLOOD' ? 58 : (cp.state === 'EBB' ? 46 : 62);
+        // [v5.0.3] Sudut lobus relatif terhadap NORMAL LAUT muara (bukan 305°/55° tetap) agar tegak lurus pantai
+        const nrm = (est.seaNormal !== undefined) ? est.seaNormal : 330;
+        const leftCenterDeg  = nrm - 38 - cp.lobeBendDeg * 0.5 + (cp.state === 'EBB' ? (isBarat ? 10 : -12) : 0);
+        const rightCenterDeg = nrm + 38 + cp.lobeBendDeg * 0.5 + (cp.state === 'EBB' ? (isBarat ? 12 : -10) : 0);
+        const halfWidth = cp.state === 'FLOOD' ? 46 : (cp.state === 'EBB' ? 40 : 50);   // sempit: tidak menyapu daratan
 
         const drawEstuaryLobe = (centerDeg, weight, sideLabel) => {
             const rings = [
@@ -7731,7 +7949,7 @@ renderBilateralPlume = function(valDebit, tidePhase) {
                 const polyPts = buildTideCoupledLobePolygon(
                     oLat, oLng, centerDeg, halfWidth * rg.f + 5,
                     rC * rg.f, rA * rg.f, cp.state, cp.nd
-                );
+                ).map(pt => DEMAK_COAST.clampToSea(pt[0], pt[1], oLat, oLng));
                 L.polygon(polyPts, {
                     pane: 'dsasPane',
                     color: rg.col,
@@ -7773,7 +7991,7 @@ renderBilateralPlume = function(valDebit, tidePhase) {
         // FITUR FISIS KHUSUS FASE PASUT DI MULUT MUARA:
         // 1. Saat FLOOD: Gambar Zona ETM (Estuarine Turbidity Maximum & Intrusi Baji Salinitas)
         if (cp.state === 'FLOOD') {
-            const etmPts = buildTideCoupledLobePolygon(oLat, oLng, 0, 82, R_cross * 0.36, R_along * 0.42, 'FLOOD', cp.nd);
+            const etmPts = buildTideCoupledLobePolygon(oLat, oLng, (est.seaNormal !== undefined ? est.seaNormal : 330), 62, R_cross * 0.36, R_along * 0.42, 'FLOOD', cp.nd).map(pt => DEMAK_COAST.clampToSea(pt[0], pt[1], oLat, oLng));
             L.polygon(etmPts, {
                 pane: 'dsasPane',
                 color: '#f43f5e',
@@ -8089,6 +8307,17 @@ function updateHydrodynamicGridVectors(tData, cp) {
             vecCol = '#fbbf24'; // Kuning Emas (Slack Water Settling)
         }
 
+        // [v5.0.3] Vektor tidak boleh menunjuk ke DARAT: bila titik di depan bukan laut, belokkan menyusur pantai
+        (function () {
+            var cosL = Math.cos(item.lat * Math.PI / 180), hr = localHeading * Math.PI / 180;
+            var aLat = item.lat + 0.0035 * Math.cos(hr), aLng = item.lng + 0.0035 * Math.sin(hr) / cosL;
+            if (!DEMAK_COAST.isSea(aLat, aLng)) {
+                var nrmDeg = DEMAK_COAST.seaNormalDeg(item.lat, item.lng);
+                var along1 = (nrmDeg + 90) % 360, along2 = (nrmDeg + 270) % 360;
+                var d1 = Math.abs(((localHeading - along1 + 540) % 360) - 180), d2 = Math.abs(((localHeading - along2 + 540) % 360) - 180);
+                localHeading = Math.round(d1 <= d2 ? along1 : along2);       // sejajar pantai, searah komponen arus
+            }
+        })();
         const cssRot = localHeading - 90;
         const scale = Math.max(0.78, Math.min(1.28, 0.75 + localSpeed * 0.65));
         const el = item.marker.getElement();
@@ -8149,52 +8378,56 @@ function stepMarinePlumeVectorEngine(time) {
         const maxR_C = cp.offshoreReachM * p.estuary.scale * (0.50 + 0.85 * weight) * p.radialBias;
         const maxR_A = cp.alongshoreSpanM * p.estuary.scale * (0.50 + 0.85 * weight) * p.radialBias;
 
-        // Lintasan & Arah Partikel Berdasarkan Fase Pasut:
+        // [v5.0.3] Lintasan partikel dihitung RELATIF terhadap NORMAL LAUT muara (tegak lurus pantai),
+        // sehingga tidak pernah mengarah ke darat. Titik awal = titik muara yang sudah berada di laut.
+        const nrm = (p.estuary.seaNormal !== undefined) ? p.estuary.seaNormal : 330;
+        const sideSign = p.lobeSide === 'kanan' ? +1 : -1;
         let curLat, curLng, headingDeg, col;
+        let rayDeg, rScale;
 
         if (cp.state === 'EBB') {
-            // SAAT EBB (SURUT): Partikel menyembur keluar dari mulut muara (s=0 -> s=1) dan melengkung mengikuti arus susur pantai musonal!
+            // EBB: jet keluar muara menembus laut, lalu melengkung mengikuti drift musonal (menyusur pantai di sisi laut)
             const s = p.progress;
-            const baseAng = p.lobeSide === 'kanan' ? (42 + p.angleSpread * 0.6) : (318 + p.angleSpread * 0.6);
-            const driftBend = (isBarat ? 28 : -28) * Math.pow(s, 1.3);
-            const rayAng = (baseAng + driftBend) * (Math.PI / 180);
-            const nextAng = (baseAng + (isBarat ? 28 : -28) * Math.pow(Math.min(1, s + 0.05), 1.3)) * (Math.PI / 180);
-
-            const dLat = ((s * maxR_C * 1.12) / mPerDeg) * Math.cos(rayAng);
-            const dLng = ((s * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayAng);
-            curLat = oLat + dLat;
-            curLng = oLng + dLng;
-
-            const nLat = oLat + (((s + 0.05) * maxR_C * 1.12) / mPerDeg) * Math.cos(nextAng);
-            const nLng = oLng + (((s + 0.05) * maxR_A) / (mPerDeg * cosLat)) * Math.sin(nextAng);
-            headingDeg = (Math.atan2((nLng - curLng) * cosLat, nLat - curLat) * 180 / Math.PI + 360) % 360;
+            const driftBend = (isBarat ? 26 : -26) * Math.pow(s, 1.3);
+            rayDeg = nrm + sideSign * (14 + p.angleSpread * 0.45) + driftBend;
+            rScale = s * 1.12;
             col = isBarat ? '#60a5fa' : '#38bdf8';
         } else if (cp.state === 'FLOOD') {
-            // SAAT FLOOD (PASANG): Arus pasang dari laut bergerak masuk ke arah pantai & muara, lalu menyebar ke sabuk mangrove tepi pantai!
-            const s = 1.0 - p.progress; // Bergerak dari luar menuju pantai/muara & menyusur pesisir
-            const baseAng = p.lobeSide === 'kanan' ? (72 + p.angleSpread * 0.55) : (288 + p.angleSpread * 0.55);
-            const rayAng = baseAng * (Math.PI / 180);
-
-            const dLat = ((s * maxR_C * 0.68) / mPerDeg) * Math.cos(rayAng);
-            const dLng = (((0.25 + 0.75 * (1 - s)) * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayAng);
-            curLat = oLat + dLat;
-            curLng = oLng + dLng;
-
-            // Vektor menunjuk ke arah pantai & menyusur sabuk mangrove (150°..210°)
-            headingDeg = (p.lobeSide === 'kanan' ? (135 + 35 * (1 - s)) : (225 - 35 * (1 - s)) + 360) % 360;
+            // FLOOD: arus pasang menekan plume ke pesisir -> partikel bergerak MENYUSUR PANTAI di sisi laut
+            // dan mengerucut kembali ke mulut muara; sekali-kali tidak melewati garis pantai (diklem ke laut).
+            const s = 1.0 - p.progress;
+            rayDeg = nrm + sideSign * (46 + p.angleSpread * 0.4);
+            rScale = s * 0.62;
             col = '#10b981';
         } else {
-            // SAAT SLACK WATER: Partikel bergerak lambat secara radial-difusif & mengendap
+            // SLACK: difusi radial lambat & pengendapan di perairan depan muara
             const s = p.progress;
-            const baseAng = p.lobeSide === 'kanan' ? (58 + p.angleSpread * 0.8) : (302 + p.angleSpread * 0.8);
             const swirl = Math.sin(s * Math.PI * 2) * 12;
-            const rayAng = (baseAng + swirl) * (Math.PI / 180);
-
-            curLat = oLat + ((s * maxR_C * 0.85) / mPerDeg) * Math.cos(rayAng);
-            curLng = oLng + ((s * maxR_A * 0.85) / (mPerDeg * cosLat)) * Math.sin(rayAng);
-            headingDeg = (baseAng + swirl + 360) % 360;
+            rayDeg = nrm + sideSign * (28 + p.angleSpread * 0.55) + swirl;
+            rScale = s * 0.85;
             col = '#fbbf24';
         }
+        const rayRad = rayDeg * Math.PI / 180;
+        const dLat = ((rScale * maxR_C) / mPerDeg) * Math.cos(rayRad);
+        const dLng = ((rScale * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayRad);
+        let tLat = oLat + dLat, tLng = oLng + dLng;
+
+        // KLEM: bila titik jatuh di darat, tarik mundur ke laut sepanjang garis dari muara
+        const clamped = DEMAK_COAST.clampToSea(tLat, tLng, oLat, oLng);
+        curLat = clamped[0]; curLng = clamped[1];
+
+        // Arah panah = arah gerak aktual partikel (turunan posisi), bukan sudut sintetis
+        const stepS = 0.04;
+        const tLat2 = oLat + ((((cp.state === 'FLOOD' ? (1 - (p.progress + stepS)) : (p.progress + stepS)) * (cp.state === 'EBB' ? 1.12 : (cp.state === 'FLOOD' ? 0.62 : 0.85))) * maxR_C) / mPerDeg) * Math.cos(rayRad);
+        const tLng2 = oLng + ((((cp.state === 'FLOOD' ? (1 - (p.progress + stepS)) : (p.progress + stepS)) * (cp.state === 'EBB' ? 1.12 : (cp.state === 'FLOOD' ? 0.62 : 0.85))) * maxR_A) / (mPerDeg * cosLat)) * Math.sin(rayRad);
+        let hdg = (Math.atan2((tLng2 - tLng) * cosLat, tLat2 - tLat) * 180 / Math.PI + 360) % 360;
+        // bila arah gerak menuju darat (titik di depan bukan laut), belokkan ke sepanjang pantai (tegak lurus normal laut)
+        const aheadLat = curLat + 0.0022 * Math.cos(hdg * Math.PI / 180);
+        const aheadLng = curLng + 0.0022 * Math.sin(hdg * Math.PI / 180) / cosLat;
+        if (!DEMAK_COAST.isSea(aheadLat, aheadLng)) {
+            hdg = (nrm + 90 * sideSign + 360) % 360;
+        }
+        headingDeg = hdg;
 
         p.marker.setLatLng([curLat, curLng]);
         // fa-location-arrow secara default menunjuk 45° (Timur Laut), sehingga rotasi kompas = headingDeg - 45
@@ -8215,29 +8448,44 @@ function stepMarinePlumeVectorEngine(time) {
 // =========================================================================
 // SINKRONISASI STREAMLINE PANAH SEDIMEN SUNGAI KE LAUT DENGAN FASE PASUT
 // =========================================================================
-// Tambahkan jalur pesisir saat Pasang (Flood Coastal Trapping Path) & saat Slack Water
-SEDIMENT_STREAMLINES_DEF.forEach(st => {
-    const mouth = st.river[st.river.length - 1];
-    // Saat FLOOD: aliran keluar muara tertahan arus pasang dan berbelok menyusuri tepi pantai masuk ke sabuk mangrove
-    st.seaFloodBarat = [
-        [mouth[0] + 0.0025, mouth[1] + 0.0045],
-        [mouth[0] + 0.0035, mouth[1] + 0.0110],
-        [mouth[0] + 0.0020, mouth[1] + 0.0185],
-        [mouth[0] - 0.0010, mouth[1] + 0.0250]
-    ];
-    st.seaFloodTimur = [
-        [mouth[0] + 0.0015, mouth[1] - 0.0045],
-        [mouth[0] - 0.0015, mouth[1] - 0.0110],
-        [mouth[0] - 0.0055, mouth[1] - 0.0180],
-        [mouth[0] - 0.0105, mouth[1] - 0.0250]
-    ];
-    // Saat SLACK: difusi radial pendek di sekitar gosong pasir muara
-    st.seaSlack = [
-        [mouth[0] + 0.0045, mouth[1] + 0.0015],
-        [mouth[0] + 0.0090, mouth[1] + 0.0035],
-        [mouth[0] + 0.0125, mouth[1] + 0.0010]
-    ];
-});
+// [v5.0.3] Pemetaan alur sungai -> titik muara (3 muara). Tuntang & Jragung bermuara di Jajar.
+var STREAM_TO_MOUTH = { tuntang_main: 'jajar', jragung_main: 'jajar', sayung_onggorawe: 'sayung', kliteh_moro: 'kliteh' };
+
+// Bangun ulang geometri alur sungai & segmen laut agar PAS dari titik muara dan mengikuti normal laut.
+// Dipanggil saat load dan setiap titik muara diedit.
+function rebuildStreamlinesForMouths() {
+    const mPerDeg = 111320;
+    SEDIMENT_STREAMLINES_DEF.forEach(st => {
+        const est = ESTUARY_OUTLETS_DEMAK.find(e => e.id === STREAM_TO_MOUTH[st.id]) || ESTUARY_OUTLETS_DEMAK[0];
+        if (!st._riverOrig) st._riverOrig = st.river.map(pt => pt.slice());
+        const orig = st._riverOrig, n = orig.length;
+        // Sambungkan: titik terakhir sungai = titik muara persis; titik sebelumnya digeser proporsional (menjaga bentuk alur)
+        const last = orig[n - 1];
+        const dLat = est.lat - last[0], dLng = est.lng - last[1];
+        st.river = orig.map((pt, i) => {
+            const w = Math.pow(i / (n - 1), 2);                 // 0 di hulu, 1 di muara
+            return [pt[0] + dLat * w, pt[1] + dLng * w];
+        });
+        st.river[n - 1] = [est.lat, est.lng];
+
+        const nrm = (est.seaNormal !== undefined) ? est.seaNormal : 330;
+        const cosLat = Math.cos(est.lat * Math.PI / 180);
+        const ray = (deg, km) => {
+            const r = deg * Math.PI / 180;
+            return DEMAK_COAST.clampToSea(est.lat + (km * 1000 / mPerDeg) * Math.cos(r), est.lng + (km * 1000 / (mPerDeg * cosLat)) * Math.sin(r), est.lat, est.lng);
+        };
+        const arc = (sideDeg, kms, bend) => kms.map((km, i) => ray(nrm + sideDeg + bend * i, km));
+        // EBB: jet keluar muara ke laut lalu menyusur pantai di sisi laut (barat / timur)
+        st.seaBarat = arc(-16, [0.35, 0.95, 1.7, 2.6, 3.6], -7);
+        st.seaTimur = arc(+16, [0.35, 0.95, 1.7, 2.6, 3.6], +7);
+        // FLOOD: arus pasang menekan keluaran sungai menyusur pantai di sisi laut (tidak masuk daratan)
+        st.seaFloodBarat = arc(-52, [0.30, 0.80, 1.40, 2.00], -10);
+        st.seaFloodTimur = arc(+52, [0.30, 0.80, 1.40, 2.00], +10);
+        // SLACK: difusi radial pendek di perairan depan muara
+        st.seaSlack = [ray(nrm - 10, 0.35), ray(nrm + 4, 0.80), ray(nrm + 16, 1.10)];
+    });
+}
+rebuildStreamlinesForMouths();
 
 updateSedimentStreamlines = function() {
     if (!sedimentActiveParticles || sedimentActiveParticles.length === 0) return;
